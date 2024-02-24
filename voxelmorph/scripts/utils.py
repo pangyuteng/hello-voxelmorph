@@ -2,6 +2,14 @@ import sys
 import numpy as np
 import SimpleITK as sitk
 
+def rescale_intensity(src_obj)
+    rescalFilt = sitk.RescaleIntensityImageFilter()
+    rescalFilt.SetOutputMaximum(1.0)
+    rescalFilt.SetOutputMinimum(0.0)
+    # Reads the image using SimpleITK
+    tgt_obj = rescalFilt.Execute(sitk.Cast(src_obj, sitk.sitkFloat32))
+    return tgt_obj
+
 def resample(src_obj,out_size):
     src_size = np.array(src_obj.GetSize())
     src_spacing = np.array(src_obj.GetSpacing())

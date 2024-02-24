@@ -40,7 +40,8 @@ import numpy as np
 import voxelmorph as vxm
 import tensorflow as tf
 import SimpleITK as sitk
-from utils import resample
+
+from utils import resample, rescale_intensity
 
 def main(args):
     # tensorflow device handling
@@ -75,7 +76,7 @@ if __name__ == "__main__":
     parser.add_argument('--fixed', required=True, help='fixed image (target) filename')
     parser.add_argument('--moved', required=True, help='warped image output filename')
     parser.add_argument('--model', required=True, help='keras model for nonlinear registration')
-    parser.add_argument('--size', default='(512,512,64)')
+    parser.add_argument('--size', default='(128,128,64)')
     parser.add_argument('--warp', help='output warp deformation filename')
     parser.add_argument('-g', '--gpu', help='GPU number(s) - if not supplied, CPU is used')
     parser.add_argument('--multichannel', action='store_true',
@@ -86,11 +87,13 @@ if __name__ == "__main__":
         out_size = ast.literal_eval(args.size)
         moving_obj = sitk.ReadImage(args.moving)
         moving_resampled_obj = resample(moving_obj,out_size)
+        moving_resampled_obj = rescale_intensity(moving_resampled_obj)
         moving_file = os.path.join(tmpdir,'moving.nii.gz')
         sitk.WriteImage(moving_resampled_obj,moving_file)
         
         fixed_obj = sitk.ReadImage(args.fixed)
         fixed_resampled_obj = resample(fixed_obj,out_size)
+        fixed_resampled_obj = rescale_intensity(fixed_resampled_obj)
         fixed_file = os.path.join(tmpdir,'fixed.nii.gz')
         sitk.WriteImage(fixed_resampled_obj,fixed_file)
         
