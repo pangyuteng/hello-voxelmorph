@@ -13,6 +13,8 @@ docker run -it -u $(id -u):$(id -g) \
 
 ### sample registration with sample weights from voxelmorph
 
++ locate sample tlc,rv, set rv as fixed, tlc as moving.
+
 ```
 
 wget https://surfer.nmr.mgh.harvard.edu/ftp/data/voxelmorph/synthmorph/shapes-dice-vel-3-res-8-16-32-256f.h5

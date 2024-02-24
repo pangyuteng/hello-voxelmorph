@@ -41,6 +41,7 @@ import voxelmorph as vxm
 import tensorflow as tf
 import SimpleITK as sitk
 import shutil
+
 from utils import resample, rescale_intensity
 
 def main(args):
