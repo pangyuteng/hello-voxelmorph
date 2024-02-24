@@ -6,7 +6,7 @@ executable = register.sh
 should_transfer_files = YES
 transfer_input_files = register.sh
 
-requirements = (OpSys == "LINUX" && Arch == "X86_64" && GPUMEM > 40000)
+requirements = (OpSys == "LINUX" && Arch == "X86_64" && GPUMEM > 30000)
 
 when_to_transfer_output = ON_EXIT
 output = log/$(cluster).$(process).out
