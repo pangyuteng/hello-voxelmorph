@@ -111,9 +111,9 @@ if __name__ == "__main__":
 """
 
 python register.py \
-    --fixed /radraid/pteng-public/tmp/RESEARCH/10123/10123_001ABRRO/2004-07-13/rv.nii.gz \
-    --moving /radraid/pteng-public/tmp/RESEARCH/10123/10123_001ABRRO/2004-07-13/tlc.nii.gz \
-    --moved /cvibraid/cvib2/Temp/tmp/moved.nii.gz \
+    --fixed readonly/rv.nii.gz \
+    --moving readonly/tlc.nii.gz \
+    --moved workdir/moved.nii.gz \
     --model shapes-dice-vel-3-res-8-16-32-256f.h5 \
     --gpu 0
 
