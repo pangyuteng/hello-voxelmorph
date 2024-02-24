@@ -1,2 +1,4 @@
 voxelmorph==v0.2
 nibabel==3.0
+SimpleITK
+pandas
