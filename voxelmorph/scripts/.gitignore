@@ -2,3 +2,4 @@ log
 docker_stderror
 *.csv
 *.h5
+register.args
