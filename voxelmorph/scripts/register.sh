@@ -6,5 +6,8 @@ moving_file=$2
 moved_file=$3
 
 cd /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/scripts
-python register.py --size "(128,128,128)" --gpu 0 --model shapes-dice-vel-3-res-8-16-32-256f.h5 \
+python register.py \
+    --gpu 0 \
+    --model shapes-dice-vel-3-res-8-16-32-256f.h5 \
+    --size "(128,128,128)" \
     --fixed ${fixed_file} --moving ${moving_file} --moved ${moved_file}
