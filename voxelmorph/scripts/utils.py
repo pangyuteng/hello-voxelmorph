@@ -2,7 +2,7 @@ import sys
 import numpy as np
 import SimpleITK as sitk
 
-def rescale_intensity(src_obj)
+def rescale_intensity(src_obj):
     rescalFilt = sitk.RescaleIntensityImageFilter()
     rescalFilt.SetOutputMaximum(1.0)
     rescalFilt.SetOutputMinimum(0.0)
