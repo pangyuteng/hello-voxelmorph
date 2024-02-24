@@ -50,9 +50,9 @@ def main(args):
 
     # load moving and fixed images
     add_feat_axis = not args.multichannel
-    moving = vxm.py.utils.load_volfile(args.moving, add_batch_axis=True, add_feat_axis=add_feat_axis)
+    moving = vxm.py.utils.load_volfile(args.resampled_moving, add_batch_axis=True, add_feat_axis=add_feat_axis)
     fixed, fixed_affine = vxm.py.utils.load_volfile(
-        args.fixed, add_batch_axis=True, add_feat_axis=add_feat_axis, ret_affine=True)
+        args.resampled_fixed, add_batch_axis=True, add_feat_axis=add_feat_axis, ret_affine=True)
 
     inshape = moving.shape[1:-1]
     nb_feats = moving.shape[-1]
@@ -63,12 +63,19 @@ def main(args):
         warp = vxm.networks.VxmDense.load(args.model, **config).register(moving, fixed)
         moved = vxm.networks.Transform(inshape, nb_feats=nb_feats).predict([moving, warp])
 
+        # transform again, with `rescale` specified
+        lg_moving = vxm.py.utils.load_volfile(args.lg_moving, add_batch_axis=True, add_feat_axis=add_feat_axis)
+        _,lg_fixed_affine = vxm.py.utils.load_volfile(args.lg_fixed, add_batch_axis=True, add_feat_axis=add_feat_axis,ret_affine=True)
+        lg_inshape = lg_moving.shape[1:-1]
+        lg_moved = vxm.networks.Transform(lg_inshape, rescale=args.rescale, nb_feats=nb_feats).predict([lg_moving, warp])
+
     # save warp
     if args.warp:
         vxm.py.utils.save_volfile(warp.squeeze(), args.warp, fixed_affine)
 
     # save moved image
-    vxm.py.utils.save_volfile(moved.squeeze(), args.moved, fixed_affine)
+    vxm.py.utils.save_volfile(moved.squeeze(), args.sm_moved, fixed_affine)
+    vxm.py.utils.save_volfile(lg_moved.squeeze(), args.lg_moved, lg_fixed_affine)
 
 if __name__ == "__main__":
     # parse commandline args
@@ -82,30 +89,51 @@ if __name__ == "__main__":
     parser.add_argument('--multichannel', action='store_true',
                         help='specify that data has multiple channels')
     parser.add_argument('--size', default='(128,128,128)',help='shape of resampled moving and fixed images prior feeding to voxelmorph')
+    parser.add_argument('--rescale',type=int,default=4,help='attempt to trasnform using an higher resolution moving')
     args = parser.parse_args()
 
     with tempfile.TemporaryDirectory() as tmpdir:
         out_size = ast.literal_eval(args.size)
+
         moving_obj = sitk.ReadImage(args.moving)
+        og_size = moving_obj.GetSize()
         moving_resampled_obj = resample(moving_obj,out_size)
         moving_resampled_obj = rescale_intensity(moving_resampled_obj)
-        moving_file = os.path.join(tmpdir,'moving.nii.gz')
-        sitk.WriteImage(moving_resampled_obj,moving_file)
-        shutil.copy(moving_file,os.path.dirname(args.moved))
+        args.resampled_moving = os.path.join(tmpdir,'sm_moving.nii.gz')
+        sitk.WriteImage(moving_resampled_obj,args.resampled_moving)
+
         fixed_obj = sitk.ReadImage(args.fixed)
         fixed_resampled_obj = resample(fixed_obj,out_size)
         fixed_resampled_obj = rescale_intensity(fixed_resampled_obj)
-        fixed_file = os.path.join(tmpdir,'fixed.nii.gz')
-        sitk.WriteImage(fixed_resampled_obj,fixed_file)
-        shutil.copy(fixed_file,os.path.dirname(args.moved))
+        args.resampled_fixed = os.path.join(tmpdir,'sm_fixed.nii.gz')
+        sitk.WriteImage(fixed_resampled_obj,args.resampled_fixed)
         
-        args.moving = moving_file
-        args.fixed = fixed_file
-        moving_obj = sitk.ReadImage(args.moving)
-        fixed_obj = sitk.ReadImage(args.fixed)
-        print(moving_obj.GetSize())
-        print(fixed_obj.GetSize())
+        args.sm_moved = os.path.join(tmpdir,'sm_moved.nii.gz')
+        args.lg_moved = os.path.join(tmpdir,'lg_moved.nii.gz')
+        args.lg_moving = os.path.join(tmpdir,'lg_moving.nii.gz')
+        args.lg_fixed = os.path.join(tmpdir,'lg_fixed.nii.gz')
+
+        lg_out_size = (np.array(out_size)*args.rescale).astype(int).tolist()
+        lg_moving_resampled_obj = resample(moving_obj,lg_out_size)
+        sitk.WriteImage(lg_moving_resampled_obj,args.lg_moving)
+        lg_fixed_resampled_obj = resample(fixed_obj,lg_out_size)
+        sitk.WriteImage(lg_fixed_resampled_obj,args.lg_fixed)
+        del moving_obj,fixed_obj,moving_resampled_obj,fixed_resampled_obj,lg_moving_resampled_obj
+
         main(args)
+
+        # resize
+        lg_moved_obj = sitk.ReadImage(args.lg_moved)
+        moved_obj = resample(lg_moved_obj,og_size)
+        sitk.WriteImage(moved_obj,args.moved)
+
+        # TODO del later after dev.
+        shutil.copy(args.resampled_moving,os.path.dirname(args.moved))
+        shutil.copy(args.resampled_fixed,os.path.dirname(args.moved))
+        shutil.copy(args.sm_moved,os.path.dirname(args.moved))
+        shutil.copy(args.lg_moved,os.path.dirname(args.moved))
+        shutil.copy(args.moving,os.path.dirname(args.moved))
+        shutil.copy(args.fixed,os.path.dirname(args.moved))
 
     print('done')
 
