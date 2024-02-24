@@ -4,7 +4,7 @@ docker_pull_policy = always
 
 executable = register.sh
 should_transfer_files = YES
-transfer_input_files = register.sh
+transfer_input_files = register.sh,register.py,utils.py
 
 requirements = (OpSys == "LINUX" && Arch == "X86_64" && GPUMEM > 30000)
 
