@@ -14,21 +14,20 @@ def rescale_intensity(src_obj,min_val=-1000,max_val=1000):
     tgt_obj = rescalFilt.Execute(sitk.Cast(src_obj, sitk.sitkFloat32))
     return tgt_obj
 
-def resample(src_obj,out_size):
+def resample(src_obj,out_size,method=sitk.sitkNearestNeighbor):
     src_size = np.array(src_obj.GetSize())
     src_spacing = np.array(src_obj.GetSpacing())
     tgt_size = np.array(out_size)
     tgt_spacing = src_size*src_spacing/tgt_size
 
-    szX,szY,szZ = out_size
-    ref_obj = sitk.Image(szX,szY,szZ, sitk.sitkInt16)
+    ref_obj = sitk.Image(out_size, sitk.sitkInt16)
     ref_obj.SetDirection(src_obj.GetDirection())
     ref_obj.SetOrigin(src_obj.GetOrigin())
     ref_obj.SetSpacing(tgt_spacing)
 
     tgt_obj = sitk.Resample(
         src_obj, ref_obj, sitk.Transform(),
-        sitk.sitkNearestNeighbor, 0, src_obj.GetPixelID()
+        method, 0, src_obj.GetPixelID()
     )
     return tgt_obj
 
