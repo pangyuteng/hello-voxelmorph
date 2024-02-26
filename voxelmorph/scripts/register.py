@@ -125,6 +125,7 @@ if __name__ == "__main__":
         # resize
         lg_moved_obj = sitk.ReadImage(args.lg_moved)
         moved_obj = resample(lg_moved_obj,og_size)
+        moved_obj = sitk.Cast(moved_obj, sitk.sitkInt32)
         sitk.WriteImage(moved_obj,args.moved)
 
         # TODO del later after dev.
