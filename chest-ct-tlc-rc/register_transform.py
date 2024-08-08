@@ -66,63 +66,90 @@ def core(args):
 #
 # TODO: if shit works, please refactor this is fugly af.
 #
-def register_transform(fixed_nifti_file,moving_nifti_file,moving_list,output_folder):
+def register_transform(fixed_nifti_file,moving_nifti_file,moved_nifti_file,moving_list,output_folder):
     
     os.makedirs(output_folder,exist_ok=True)
-    if len(os.listdir(output_folder)) > 0:
-        raise ValueError("files found in output_folder, please delete items in folder first!")
+    #if len(os.listdir(output_folder)) > 0:
+    #    raise ValueError("files found in output_folder, please delete items in folder first!")
     try:
         # initial affine transform:
-        elastix_register_and_transform(
-            fixed_nifti_file,
-            moving_nifti_file,
-            moving_list=moving_list,
-        )
+        pass
+        # elastix_register_and_transform(
+        #     fixed_nifti_file,
+        #     moving_nifti_file,
+        #     moving_list=moving_list,
+        # )
     except:
         traceback.print_exc()
 
-    if not all([os.path.exists(moved) for moving,moved,_,_ in moving_list]):
+    if not all([os.path.exists(item['moved_file']) for item in moving_list]):
         raise ValueError('elastix_register_and_transform failed!')
-    
-    print('here')
-    sys.exit(1)
-    model = os.path.join(THIS_DIR,'shapes-dice-vel-3-res-8-16-32-256f.h5')
-    gpu = None #0
+
+    # voxelmorph config
+    model_file = os.path.join(THIS_DIR,'shapes-dice-vel-3-res-8-16-32-256f.h5')
+    gpu_id = None #0
     multichannel = False
-    size = (128,128,128)
+    sm_size = (128,128,128)
     rescale = 4
+    warp_file = None
+    sm_moved_file = None
+    # downsize and resasmple to perform registration.
+
+    fixed_obj = sitk.ReadImage(fixed_nifti_file)
+    og_size = fixed_obj.GetSize()
+    fixed_resampled_obj = resample(fixed_obj,sm_size)
+    fixed_resampled_obj = rescale_intensity(fixed_resampled_obj)
+    
+    moving_obj = sitk.ReadImage(moved_nifti_file)
+    moving_resampled_obj = resample(moving_obj,sm_size)
+    moving_resampled_obj = rescale_intensity(moving_resampled_obj)
+
+    resampled_fixed_file = os.path.join(output_folder,'tmp_fixed.nii.gz')
+    sitk.WriteImage(fixed_resampled_obj,resampled_fixed_file)
+    resampled_moving_file = os.path.join(output_folder,'tmp_moving.nii.gz')
+    sitk.WriteImage(moving_resampled_obj,resampled_moving_file)
+
+
+    # tensorflow device handling
+    device, nb_devices = vxm.tf.utils.setup_device(gpu_id)
 
     # load moving and fixed images
     add_feat_axis = not multichannel
-    moving = vxm.py.utils.load_volfile(resampled_moving, add_batch_axis=True, add_feat_axis=add_feat_axis)
-    fixed, fixed_affine = vxm.py.utils.load_volfile(
-        args.resampled_fixed, add_batch_axis=True, add_feat_axis=add_feat_axis, ret_affine=True)
+    sm_moving = vxm.py.utils.load_volfile(resampled_moving_file, add_batch_axis=True, add_feat_axis=add_feat_axis)
+    sm_fixed, fixed_affine = vxm.py.utils.load_volfile(
+        resampled_moving_file, add_batch_axis=True, add_feat_axis=add_feat_axis, ret_affine=True)
 
-    inshape = moving.shape[1:-1]
-    nb_feats = moving.shape[-1]
+    inshape = sm_moving.shape[1:-1]
+    nb_feats = sm_moving.shape[-1]
 
     with tf.device(device):
         # load model and predict
         config = dict(inshape=inshape, input_model=None)
-        warp = vxm.networks.VxmDense.load(args.model, **config).register(moving, fixed)
-        moved = vxm.networks.Transform(inshape, nb_feats=nb_feats).predict([moving, warp])
-
-        for og_file,moved_file,lg_moving_file,lg_moved_file in args.moving_list:
-            # transform again, with `rescale` specified
-            lg_moving = vxm.py.utils.load_volfile(lg_moving_file, add_batch_axis=True, add_feat_axis=add_feat_axis)
-            _,lg_fixed_affine = vxm.py.utils.load_volfile(args.lg_fixed, add_batch_axis=True, add_feat_axis=add_feat_axis,ret_affine=True)
+        warp = vxm.networks.VxmDense.load(model_file, **config).register(sm_moving, sm_fixed)
+        # just checking if Transform works with warp...
+        sm_moved = vxm.networks.Transform(inshape, nb_feats=nb_feats).predict([sm_moving, warp])
+        for item in moving_list:
+            moving_file = item["moving_file"]
+            moved_file = item["moved_file"]
+            moved_affine_only_file = item["moved_file"]+".affine-only-backup"
+            shutil.copy(moved_file,moved_affine_only_file)
+            # transform with `rescale` specified
+            lg_moving = vxm.py.utils.load_volfile(moved_affine_only_file, add_batch_axis=True, add_feat_axis=add_feat_axis)
+            _, lg_fixed_affine = vxm.py.utils.load_volfile(fixed_nifti_file, add_batch_axis=True, add_feat_axis=add_feat_axis,ret_affine=True)
             lg_inshape = lg_moving.shape[1:-1]
-            lg_moved = vxm.networks.Transform(lg_inshape, rescale=args.rescale, nb_feats=nb_feats).predict([lg_moving, warp])
-            vxm.py.utils.save_volfile(lg_moved.squeeze(), lg_moved_file, lg_fixed_affine)
+            lg_moved = vxm.networks.Transform(lg_inshape, rescale=rescale, nb_feats=nb_feats).predict([lg_moving, warp])
+            vxm.py.utils.save_volfile(lg_moved.squeeze(), moved_file, lg_fixed_affine)
 
     # save warp
-    if args.warp:
-        vxm.py.utils.save_volfile(warp.squeeze(), args.warp, fixed_affine)
+    if warp_file:
+        vxm.py.utils.save_volfile(warp.squeeze(), warp_file, fixed_affine)
 
     # save moved image
-    vxm.py.utils.save_volfile(moved.squeeze(), args.sm_moved, fixed_affine)
+    if sm_moved_file:
+        vxm.py.utils.save_volfile(moved.squeeze(), sm_moved_file, fixed_affine)
 
-#
+    print('here')
+    sys.exit(1)
 
     '''
         # fixed is hrct, moving is ctwb.
@@ -279,12 +306,18 @@ if __name__ == "__main__":
         content = json.loads(f.read())
 
     fixed_nifti_file = content['fixed_nifti_file']
-    moving_nifti_file = content['moving_nifti_file']
+    _moving_nifti_file = None
+    _moved_nifti_file = None
     moving_list = content['moving_list']
     output_folder = content['output_folder']
-    for n,blah in enumerate(moving_list):
-        moving_list[n][1] = os.path.join(output_folder,moving_list[n][1])
-    register_transform(fixed_nifti_file,moving_nifti_file,moving_list,output_folder)
+    for n,item in enumerate(moving_list):
+        moving_list[n]["moved_file"] = os.path.join(output_folder,item["moved_file"])
+        if item.get("main",None) is True:
+            _moving_nifti_file = moving_list[n]["moving_file"]
+            _moved_nifti_file = moving_list[n]["moved_file"]
+    if _moving_nifti_file is None:
+        raise ValueError("main tag not found in any item moving list")
+    register_transform(fixed_nifti_file,_moving_nifti_file,_moved_nifti_file,moving_list,output_folder)
 
     #quality_check(args)
     print('done')
@@ -294,5 +327,8 @@ if __name__ == "__main__":
 docker run -it -u $(id -u):$(id -g) -w $PWD pangyuteng/voxelmorph:latest bash
 
 python register_transform.py 
+
+dev
+bash hola.sh
 
 """

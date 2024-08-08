@@ -43,18 +43,18 @@ def hole_fill(mask_obj):
     tgt_obj.SetDirection(mask_obj.GetDirection())
     return tgt_obj
 
-def rescale_intensity(src_obj,mask_obj=None):
-    
-    min_val, max_val = -1000, 1000
+def rescale_intensity(src_obj,mask_obj=None,min_val=-1000,max_val=1000,out_min_val=0.0,out_max_val=1.0):
+
     arr = sitk.GetArrayFromImage(src_obj)
-    min_val, max_val = np.percentile(arr,[10,90])
+    if min_val is None or max_val is None:
+        min_val, max_val = np.percentile(arr,[10,90])
     clampFilt = sitk.ClampImageFilter()
     clampFilt.SetLowerBound(min_val)
     clampFilt.SetUpperBound(max_val)
     src_obj = clampFilt.Execute(src_obj)
     rescalFilt = sitk.RescaleIntensityImageFilter()
-    rescalFilt.SetOutputMaximum(1.0)
-    rescalFilt.SetOutputMinimum(0.0)
+    rescalFilt.SetOutputMaximum(out_max_val)
+    rescalFilt.SetOutputMinimum(out_min_val)
     # Reads the image using SimpleITK
     tmp_obj = rescalFilt.Execute(sitk.Cast(src_obj, sitk.sitkFloat32))
     if mask_obj:
@@ -65,7 +65,7 @@ def rescale_intensity(src_obj,mask_obj=None):
             mask, morphology.ball(radius=3)
         )
         border = np.logical_and(dilated==1,mask==0)
-        img[border==1]=1.0
+        img[border==1]=out_max_val
 
         tgt_obj = sitk.GetImageFromArray(img)
         tgt_obj.SetSpacing(tmp_obj.GetSpacing())
@@ -90,10 +90,10 @@ def resample(src_obj,out_size,method=sitk.sitkNearestNeighbor):
     )
     return tgt_obj
 
-def elastix_register_and_transform(fixed_file,moving_file,moving_list=[]):
+def elastix_register_and_transform(fixed_file,_moving_file,moving_list=[]):
 
     fixed = sitk.ReadImage(fixed_file)
-    moving = sitk.ReadImage(moving_file)
+    moving = sitk.ReadImage(_moving_file)
 
     elastixImageFilter = sitk.ElastixImageFilter()
     elastixImageFilter.SetFixedImage(fixed)
@@ -115,7 +115,11 @@ def elastix_register_and_transform(fixed_file,moving_file,moving_list=[]):
     elastixImageFilter.LogToFileOn()
     elastixImageFilter.Execute()
 
-    for moving_file,moved_file,out_pixel_value,is_mask in moving_list:
+    for item in moving_list:
+        moving_file = item["moving_file"]
+        moved_file = item["moved_file"]
+        out_pixel_value = item["out_val"]
+        is_mask = item["is_mask"]
 
         transform_tuple = elastixImageFilter.GetTransformParameterMap()
         transform = list(transform_tuple)
