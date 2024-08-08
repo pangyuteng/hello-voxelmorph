@@ -131,7 +131,7 @@ def register_transform(fixed_nifti_file,moving_nifti_file,moved_nifti_file,movin
         for item in moving_list:
             moving_file = item["moving_file"]
             moved_file = item["moved_file"]
-            moved_affine_only_file = item["moved_file"]+".affine-only-backup"
+            moved_affine_only_file = item["moved_file"]+".affine-only-backup.nii.gz"
             shutil.copy(moved_file,moved_affine_only_file)
             # transform with `rescale` specified
             lg_moving = vxm.py.utils.load_volfile(moved_affine_only_file, add_batch_axis=True, add_feat_axis=add_feat_axis)
