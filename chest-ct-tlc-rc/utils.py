@@ -117,7 +117,7 @@ def elastix_register_and_transform(fixed_file,_moving_file,moving_list=[]):
 
     for item in moving_list:
         moving_file = item["moving_file"]
-        moved_file = item["moved_file"]
+        moved_file = item["affine_only_moved_file"]
         out_pixel_value = item["out_val"]
         is_mask = item["is_mask"]
 

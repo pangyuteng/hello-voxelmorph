@@ -66,23 +66,22 @@ def core(args):
 #
 # TODO: if shit works, please refactor this is fugly af.
 #
-def register_transform(fixed_nifti_file,moving_nifti_file,moved_nifti_file,moving_list,output_folder):
+def register_transform(fixed_nifti_file,moving_nifti_file,affine_only_moved_nifti_file,moving_list,output_folder):
     
     os.makedirs(output_folder,exist_ok=True)
-    #if len(os.listdir(output_folder)) > 0:
-    #    raise ValueError("files found in output_folder, please delete items in folder first!")
+    if len(os.listdir(output_folder)) > 0:
+       raise ValueError("files found in output_folder, please delete items in folder first!")
     try:
         # initial affine transform:
-        pass
-        # elastix_register_and_transform(
-        #     fixed_nifti_file,
-        #     moving_nifti_file,
-        #     moving_list=moving_list,
-        # )
+        elastix_register_and_transform(
+            fixed_nifti_file,
+            moving_nifti_file,
+            moving_list=moving_list,
+        )
     except:
         traceback.print_exc()
 
-    if not all([os.path.exists(item['moved_file']) for item in moving_list]):
+    if not all([os.path.exists(item['affine_only_moved_file']) for item in moving_list]):
         raise ValueError('elastix_register_and_transform failed!')
 
     # voxelmorph config
@@ -95,12 +94,25 @@ def register_transform(fixed_nifti_file,moving_nifti_file,moved_nifti_file,movin
     sm_moved_file = None
     # downsize and resasmple to perform registration.
 
+    # rescale up 
+    for item in moving_list:
+        raise NotImplementedError()
+        moved_file = moving_list[n]["moved_file"]
+        affine_only_moved_file = item["affine_only_moved_file"]
+        lg_moved_affine_only_file = item["lg_moved_affine_only_file"]
+
+        lg_out_size = (np.array(sm_size)*rescale).astype(int).tolist()
+        moving_obj = sitk.ReadImage(moved_file)
+        lg_moving_resampled_obj = resample(moving_obj,lg_out_size)
+        lg_moving_resampled_obj = sitk.Cast(lg_moving_resampled_obj,moving_obj.GetPixelID())
+        sitk.WriteImage(lg_moving_resampled_obj,lg_moving_file)
+
     fixed_obj = sitk.ReadImage(fixed_nifti_file)
     og_size = fixed_obj.GetSize()
     fixed_resampled_obj = resample(fixed_obj,sm_size)
     fixed_resampled_obj = rescale_intensity(fixed_resampled_obj)
     
-    moving_obj = sitk.ReadImage(moved_nifti_file)
+    moving_obj = sitk.ReadImage(affine_only_moved_nifti_file)
     moving_resampled_obj = resample(moving_obj,sm_size)
     moving_resampled_obj = rescale_intensity(moving_resampled_obj)
 
@@ -129,16 +141,14 @@ def register_transform(fixed_nifti_file,moving_nifti_file,moved_nifti_file,movin
         # just checking if Transform works with warp...
         sm_moved = vxm.networks.Transform(inshape, nb_feats=nb_feats).predict([sm_moving, warp])
         for item in moving_list:
-            moving_file = item["moving_file"]
-            moved_file = item["moved_file"]
-            moved_affine_only_file = item["moved_file"]+".affine-only-backup.nii.gz"
-            shutil.copy(moved_file,moved_affine_only_file)
+            lg_moved_affine_only_file = item["lg_moved_affine_only_file"]
+            lg_moved_file = item["lg_moved_file"]
             # transform with `rescale` specified
-            lg_moving = vxm.py.utils.load_volfile(moved_affine_only_file, add_batch_axis=True, add_feat_axis=add_feat_axis)
+            lg_moving = vxm.py.utils.load_volfile(lg_moved_affine_only_file, add_batch_axis=True, add_feat_axis=add_feat_axis)
             _, lg_fixed_affine = vxm.py.utils.load_volfile(fixed_nifti_file, add_batch_axis=True, add_feat_axis=add_feat_axis,ret_affine=True)
             lg_inshape = lg_moving.shape[1:-1]
             lg_moved = vxm.networks.Transform(lg_inshape, rescale=rescale, nb_feats=nb_feats).predict([lg_moving, warp])
-            vxm.py.utils.save_volfile(lg_moved.squeeze(), moved_file, lg_fixed_affine)
+            vxm.py.utils.save_volfile(lg_moved.squeeze(), lg_moved_file, lg_fixed_affine)
 
     # save warp
     if warp_file:
@@ -148,6 +158,38 @@ def register_transform(fixed_nifti_file,moving_nifti_file,moved_nifti_file,movin
     if sm_moved_file:
         vxm.py.utils.save_volfile(moved.squeeze(), sm_moved_file, fixed_affine)
 
+    # rescale back
+    for item in moving_list:
+        raise NotImplementedError()
+        moving_file = moving_list[n]["moving_file"]
+        moved_file = moving_list[n]["moved_file"]
+        affine_only_moved_file = item["affine_only_moved_file"]
+        lg_moved_affine_only_file = item["lg_moved_affine_only_file"]
+        lg_moved_file = item["lg_moved_file"]
+        is_mask = item["is_mask"]
+
+        moving_obj = sitk.ReadImage(moving_file)
+        lg_moved_obj = sitk.ReadImage(lg_moved_file)
+        lg_moved_obj = sitk.Cast(lg_moved_obj,moving_obj.GetPixelID())
+        moved_obj = resample(lg_moved_obj,og_size)
+        if is_mask:
+            moved_obj = hole_fill(moved_obj)
+        moved_obj = sitk.Cast(moved_obj, moving_obj.GetPixelID())
+        sitk.WriteImage(moved_obj,moved_file)
+
+    '''
+        # resize
+        for og_file,moved_file,lg_moving_file,lg_moved_file in args.moving_list:
+            moving_obj = sitk.ReadImage(og_file)
+            lg_moved_obj = sitk.ReadImage(lg_moved_file)
+            lg_moved_obj = sitk.Cast(lg_moved_obj,moving_obj.GetPixelID())
+            moved_obj = resample(lg_moved_obj,og_size)
+            if moved_file.endswith('lung.nii.gz'):
+                moved_obj = hole_fill(moved_obj)
+            moved_obj = sitk.Cast(moved_obj, moving_obj.GetPixelID())
+            sitk.WriteImage(moved_obj,moved_file)
+
+    '''
     print('here')
     sys.exit(1)
 
@@ -307,17 +349,21 @@ if __name__ == "__main__":
 
     fixed_nifti_file = content['fixed_nifti_file']
     _moving_nifti_file = None
-    _moved_nifti_file = None
+    _affine_only_moved_nifti_file = None
     moving_list = content['moving_list']
     output_folder = content['output_folder']
     for n,item in enumerate(moving_list):
-        moving_list[n]["moved_file"] = os.path.join(output_folder,item["moved_file"])
+        base_name = item["moved_file"]
+        moving_list[n]["affine_only_moved_file"] = os.path.join(output_folder,"affine-only-"+base_name)
+        moving_list[n]["lg_moved_affine_only_file"] = os.path.join(output_folder,"lg-affine-only-"+base_name)
+        moving_list[n]["lg_moved_file"] = os.path.join(output_folder,"lg-"+base_name)
+        moving_list[n]["moved_file"] = os.path.join(output_folder,base_name)
         if item.get("main",None) is True:
             _moving_nifti_file = moving_list[n]["moving_file"]
-            _moved_nifti_file = moving_list[n]["moved_file"]
+            _affine_only_moved_nifti_file = moving_list[n]["affine_only_moved_file"]
     if _moving_nifti_file is None:
         raise ValueError("main tag not found in any item moving list")
-    register_transform(fixed_nifti_file,_moving_nifti_file,_moved_nifti_file,moving_list,output_folder)
+    register_transform(fixed_nifti_file,_moving_nifti_file,_affine_only_moved_nifti_file,moving_list,output_folder)
 
     #quality_check(args)
     print('done')
@@ -332,3 +378,4 @@ dev
 bash hola.sh
 
 """
+
