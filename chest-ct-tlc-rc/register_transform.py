@@ -56,8 +56,12 @@ RESCALE_FACTOR = 4
 #    + then scale down images back to the original image size.
 #
 
-def register_transform(fixed_nifti_file,moving_nifti_file,affine_only_moved_nifti_file,moving_list,output_folder):
-    
+def register_transform(fixed_nifti_file,moving_list,output_folder):
+
+    moving_item = [item for item in moving_list if item.get('moving_image',None) is True][0]
+    moving_nifti_file = moving_item["moving_file"]
+    affine_only_moved_nifti_file = moving_item["affine_only_moved_file"]
+
     os.makedirs(output_folder,exist_ok=True)
     if len(os.listdir(output_folder)) > 0:
        raise ValueError("files found in output_folder, please delete items in folder first!")
@@ -87,6 +91,7 @@ def register_transform(fixed_nifti_file,moving_nifti_file,affine_only_moved_nift
     if not all([os.path.exists(item['affine_only_moved_file']) for item in moving_list]):
         raise ValueError('elastix_register_and_transform failed!')
 
+    shutil.copy(fixed_nifti_file,os.path.join(output_folder,'fixed-image.nii.gz'))
     # downsize and resasmple to perform registration.
 
     fixed_obj = sitk.ReadImage(fixed_nifti_file)
@@ -230,6 +235,7 @@ if __name__ == "__main__":
     affine_only_moved_nifti_file = None
     moving_list = content['moving_list']
     output_folder = content['output_folder']
+    moving_image_set = False
     for n,item in enumerate(moving_list):
         base_name = item["moved_basename"]
         moving_list[n]["affine_only_moved_file"] = os.path.join(output_folder,f"affine-only-moved-{base_name}")
@@ -237,11 +243,10 @@ if __name__ == "__main__":
         moving_list[n]["lg_moved_file"] = os.path.join(output_folder,f"lg-moved-{base_name}")
         moving_list[n]["moved_file"] = os.path.join(output_folder,f"moved-{base_name}")
         if item.get("moving_image",None) is True:
-            moving_nifti_file = moving_list[n]["moving_file"]
-            affine_only_moved_nifti_file = moving_list[n]["affine_only_moved_file"]
-    if moving_nifti_file is None:
-        raise ValueError("main tag not found in any item moving list")
-    register_transform(fixed_nifti_file,moving_nifti_file,affine_only_moved_nifti_file,moving_list,output_folder)
+            moving_image_set = True
+    if moving_image_set is False:
+        raise ValueError("`moving_image` needs to be set for one item in moving_list")
+    register_transform(fixed_nifti_file,moving_list,output_folder)
 
     #quality_check(args)
     print('done')

@@ -90,10 +90,10 @@ def resample(src_obj,out_size,method=sitk.sitkNearestNeighbor):
     )
     return tgt_obj
 
-def elastix_register_and_transform(fixed_file,_moving_file,moving_list=[]):
+def elastix_register_and_transform(fixed_image_file,moving_image_file,moving_list=[]):
 
-    fixed = sitk.ReadImage(fixed_file)
-    moving = sitk.ReadImage(_moving_file)
+    fixed = sitk.ReadImage(fixed_image_file)
+    moving = sitk.ReadImage(moving_image_file)
 
     elastixImageFilter = sitk.ElastixImageFilter()
     elastixImageFilter.SetFixedImage(fixed)
@@ -101,6 +101,7 @@ def elastix_register_and_transform(fixed_file,_moving_file,moving_list=[]):
     elastixImageFilter.SetOutputDirectory('/tmp')
     
     defaultTranslationParameterMap = sitk.GetDefaultParameterMap("translation")
+    # TODO: hard code bad
     defaultTranslationParameterMap['DefaultPixelValue'] = ['-1000']
     defaultTranslationParameterMap['MaximumNumberOfIterations'] = ['512'] 
     defaultAffineParameterMap = sitk.GetDefaultParameterMap("affine")
@@ -127,8 +128,9 @@ def elastix_register_and_transform(fixed_file,_moving_file,moving_list=[]):
         if is_mask:
             transform[-1]['FinalBSplineInterpolationOrder']=["0"]
             transform[-1]["ResultImagePixelType"] = ["int"]    
-
-        #transform_tuple = (transform,)
+        # 
+        # TODO: maybe something funky here? with int transformration
+        # 
         og_obj = sitk.ReadImage(moving_file)
         transformixImageFilter = sitk.TransformixImageFilter()
         transformixImageFilter.SetMovingImage(og_obj)
