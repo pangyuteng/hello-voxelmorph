@@ -243,7 +243,7 @@ if __name__ == "__main__":
 
     os.makedirs(output_folder,exist_ok=True)
     if len(os.listdir(output_folder)) > 0:
-       raise ValueError("files found in output_folder, please delete items in folder first!")
+        raise ValueError("files found in output_folder, please delete items in folder first!")
 
     for n,item in enumerate(moving_list):
         base_name = item["moved_basename"]
@@ -268,10 +268,10 @@ if __name__ == "__main__":
     register_transform(fixed_nifti_file,moving_list,output_folder)
 
     if qc_mask_set:
-        fixed_mask_file = qc_mask_fixed_file,os.path.join(output_folder,'fixed-mask.nii.gz')
-        shutil.copy(qc_mask_fixed_file,fixed_mask_file)
+        tgt_fixed_mask_file = os.path.join(output_folder,'fixed-mask.nii.gz')
+        shutil.copy(qc_mask_fixed_file,tgt_fixed_mask_file)
         qc_json_file = os.path.join(output_folder,"qc.json")
-        quality_check(qc_mask_fixed_file,qc_mask_moved_file,qc_json_file)
+        quality_check(tgt_fixed_mask_file,qc_mask_moved_file,qc_json_file)
 
     print('done')
 
