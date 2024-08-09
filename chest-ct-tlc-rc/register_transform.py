@@ -88,7 +88,6 @@ def register_transform(fixed_nifti_file,moving_list,output_folder):
     if not all([os.path.exists(item['affine_only_moved_file']) for item in moving_list]):
         raise ValueError('elastix_register_and_transform failed!')
 
-    shutil.copy(fixed_nifti_file,os.path.join(output_folder,'fixed-image.nii.gz'))
     # downsize and resasmple to perform registration.
 
     fixed_obj = sitk.ReadImage(fixed_nifti_file)
@@ -112,17 +111,17 @@ def register_transform(fixed_nifti_file,moving_list,output_folder):
 
     # load moving and fixed images
     add_feat_axis = not MULTI_CHANNEL
-    sm_moving = vxm.py.utils.load_volfile(sm_moving_file, add_batch_axis=True, add_feat_axis=add_feat_axis)
     sm_fixed, fixed_affine = vxm.py.utils.load_volfile(
         sm_moving_file, add_batch_axis=True, add_feat_axis=add_feat_axis, ret_affine=True)
+    sm_moving = vxm.py.utils.load_volfile(sm_moving_file, add_batch_axis=True, add_feat_axis=add_feat_axis)
 
     inshape = sm_moving.shape[1:-1]
     nb_feats = sm_moving.shape[-1]
 
     with tf.device(device):
         # load model and predict
-        config = dict(inshape=inshape, input_model=None)
-        warp = vxm.networks.VxmDense.load(MODEL_FILE, **config).register(sm_moving, sm_fixed)
+        #config = dict(inshape=inshape, input_model=None) **config
+        warp = vxm.networks.VxmDense.load(MODEL_FILE).register(sm_moving, sm_fixed)
         # just checking if Transform works with warp...
         sm_moved = vxm.networks.Transform(inshape, nb_feats=nb_feats).predict([sm_moving, warp])
 
@@ -244,6 +243,9 @@ if __name__ == "__main__":
     os.makedirs(output_folder,exist_ok=True)
     if len(os.listdir(output_folder)) > 0:
         raise ValueError("files found in output_folder, please delete items in folder first!")
+
+    # for ease of debugging/visualization, copying fixed set to output_folder.
+    shutil.copy(fixed_nifti_file,os.path.join(output_folder,'fixed-image.nii.gz'))
 
     for n,item in enumerate(moving_list):
         base_name = item["moved_basename"]
