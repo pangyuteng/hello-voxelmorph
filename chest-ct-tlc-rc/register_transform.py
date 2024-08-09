@@ -141,8 +141,8 @@ def register_transform(fixed_nifti_file,moving_list,output_folder):
     # save warp
     vxm.py.utils.save_volfile(warp.squeeze(), warp_file, fixed_affine)
     # save moved image
-    vxm.py.utils.save_volfile(moved.squeeze(), sm_moved_file, fixed_affine)
-    
+    vxm.py.utils.save_volfile(sm_moved.squeeze(), sm_moved_file, fixed_affine)
+
     # rescale back
     for item in moving_list:
         moving_file = item["moving_file"]
@@ -169,19 +169,19 @@ def dice_coef(y_true, y_pred):
     smooth = 0.0001
     return (2. * intersection + smooth) / (np.sum(y_true_f) + np.sum(y_pred_f) + smooth)
 
-def quality_check(args):
-    raise NotImplementedError()
-    fixed = sitk.ReadImage(args.fixed_mask)
-    moved = sitk.ReadImage(args.moved_mask)
-    fixed_mask = sitk.GetArrayFromImage(fixed)
-    moved_mask = sitk.GetArrayFromImage(moved)
+def quality_check(qc_mask_fixed_file,qc_mask_moved_file,qc_json_file):
+
+    fixed = sitk.ReadImage(qc_mask_fixed_file)
+    moved = sitk.ReadImage(qc_mask_moved_file)
+    fixed_mask = sitk.GetArrayFromImage(fixed) > 0
+    moved_mask = sitk.GetArrayFromImage(moved) > 0
 
     registration_assessment_dict = dict(
         hausdorff_distance=hausdorff_distance(fixed_mask,moved_mask),
         dice=dice_coef(fixed_mask,moved_mask),
     )
 
-    with open(args.done_file,'w') as f:
+    with open(qc_json_file,'w') as f:
         f.write(json.dumps(registration_assessment_dict,default=str,sort_keys=True))
 
 
@@ -221,21 +221,26 @@ sample json content is provided below:
 
 
 """
+
 if __name__ == "__main__":
-    # parse commandline args
-    parser = argparse.ArgumentParser()
+
+    parser = argparse.ArgumentParser(description='details',
+        usage='use "%(prog)s --help" for more information',
+        formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('json_file',default=str,help=HELP_CONTENT)
     args = parser.parse_args()
 
     with open(args.json_file,'r') as f:
         content = json.loads(f.read())
 
+    # obtain and check json content
     fixed_nifti_file = content['fixed_file']
-    moving_nifti_file = None
-    affine_only_moved_nifti_file = None
     moving_list = content['moving_list']
     output_folder = content['output_folder']
     moving_image_set = False
+    qc_mask_set = False
+    qc_mask_fixed_file = None
+    qc_mask_moved_file = None
     for n,item in enumerate(moving_list):
         base_name = item["moved_basename"]
         moving_list[n]["affine_only_moved_file"] = os.path.join(output_folder,f"affine-only-moved-{base_name}")
@@ -244,11 +249,20 @@ if __name__ == "__main__":
         moving_list[n]["moved_file"] = os.path.join(output_folder,f"moved-{base_name}")
         if item.get("moving_image",None) is True:
             moving_image_set = True
+        if item.get("qc_mask",None) is True and content.get('qc_mask_fixed_file',None):
+            qc_masks_set = True
+            qc_mask_fixed_file = content['qc_mask_fixed_file']
+            qc_mask_moved_file = moving_list[n]["moved_file"]
+
     if moving_image_set is False:
         raise ValueError("`moving_image` needs to be set for one item in moving_list")
+
     register_transform(fixed_nifti_file,moving_list,output_folder)
 
-    #quality_check(args)
+    if qc_mask_set:
+        qc_json_file = os.path.join(output_folder,"qc.json")
+        quality_check(qc_mask_fixed_file,qc_mask_moved_file,qc_json_file)
+
     print('done')
 
 """
