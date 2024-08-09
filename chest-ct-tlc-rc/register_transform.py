@@ -62,9 +62,6 @@ def register_transform(fixed_nifti_file,moving_list,output_folder):
     moving_nifti_file = moving_item["moving_file"]
     affine_only_moved_nifti_file = moving_item["affine_only_moved_file"]
 
-    os.makedirs(output_folder,exist_ok=True)
-    if len(os.listdir(output_folder)) > 0:
-       raise ValueError("files found in output_folder, please delete items in folder first!")
     try:
         # initial affine transform:
         elastix_register_and_transform(
@@ -243,6 +240,11 @@ if __name__ == "__main__":
     qc_mask_fixed_file = None
     qc_mask_moved_file = None
     mask_moving_file = None
+
+    os.makedirs(output_folder,exist_ok=True)
+    if len(os.listdir(output_folder)) > 0:
+       raise ValueError("files found in output_folder, please delete items in folder first!")
+
     for n,item in enumerate(moving_list):
         base_name = item["moved_basename"]
         moving_list[n]["affine_only_moved_file"] = os.path.join(output_folder,f"affine-only-moved-{base_name}")
@@ -252,13 +254,13 @@ if __name__ == "__main__":
 
         if item.get("moving_image",None) is True:
             moving_image_set = True
-            shutil.move(moving_list[n]['moving_file'],os.path.join(output_folder,'moving-image.nii.gz'))
+            shutil.copy(moving_list[n]['moving_file'],os.path.join(output_folder,'moving-image.nii.gz'))
 
         if item.get("qc_mask",None) is True and content.get('qc_mask_fixed_file',None):
             qc_mask_set = True
             qc_mask_fixed_file = content['qc_mask_fixed_file']
             qc_mask_moved_file = moving_list[n]["moved_file"]
-            shutil.move(moving_list[n]['moving_file'],os.path.join(output_folder,'moving-mask.nii.gz'))
+            shutil.copy(moving_list[n]['moving_file'],os.path.join(output_folder,'moving-mask.nii.gz'))
 
     if moving_image_set is False:
         raise ValueError("`moving_image` needs to be set for one item in moving_list")
@@ -267,7 +269,7 @@ if __name__ == "__main__":
 
     if qc_mask_set:
         fixed_mask_file = qc_mask_fixed_file,os.path.join(output_folder,'fixed-mask.nii.gz')
-        shutil.move(qc_mask_fixed_file,fixed_mask_file)
+        shutil.copy(qc_mask_fixed_file,fixed_mask_file)
         qc_json_file = os.path.join(output_folder,"qc.json")
         quality_check(qc_mask_fixed_file,qc_mask_moved_file,qc_json_file)
 
