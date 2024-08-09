@@ -62,6 +62,9 @@ def register_transform(fixed_nifti_file,moving_list,output_folder):
     moving_nifti_file = moving_item["moving_file"]
     affine_only_moved_nifti_file = moving_item["affine_only_moved_file"]
 
+    lg_out_size = (np.array(SM_SIZE)*RESCALE_FACTOR).astype(int).tolist()
+    lg_fixed_file = os.path.join(output_folder,"lg-fixed-image.nii.gz")
+    
     try:
         # initial affine transform:
         elastix_register_and_transform(
@@ -70,13 +73,16 @@ def register_transform(fixed_nifti_file,moving_list,output_folder):
             moving_list=moving_list,
         )
 
+        fixed_obj = sitk.ReadImage(lg_fixed_file)
+        lg_fixed_resampled_obj = resample(fixed_obj,lg_out_size)
+        sitk.WriteImage(lg_fixed_resampled_obj,lg_fixed_file)
+
         # rescale up 
         for item in moving_list:
             moved_file = item["moved_file"]
             affine_only_moved_file = item["affine_only_moved_file"]
             lg_affine_only_moved_file = item["lg_affine_only_moved_file"]
 
-            lg_out_size = (np.array(SM_SIZE)*RESCALE_FACTOR).astype(int).tolist()
             moving_obj = sitk.ReadImage(affine_only_moved_file)
             lg_moving_resampled_obj = resample(moving_obj,lg_out_size,out_val=item["out_val"])
             lg_moving_resampled_obj = sitk.Cast(lg_moving_resampled_obj,moving_obj.GetPixelID())
@@ -91,11 +97,11 @@ def register_transform(fixed_nifti_file,moving_list,output_folder):
     # downsize and resasmple to perform registration.
 
     fixed_obj = sitk.ReadImage(fixed_nifti_file)
-    fixed_resampled_obj = resample(fixed_obj,SM_SIZE,out_val=item["out_val"])
+    fixed_resampled_obj = resample(fixed_obj,SM_SIZE,out_val=-1000)
     fixed_resampled_obj = rescale_intensity(fixed_resampled_obj)
     
     moving_obj = sitk.ReadImage(affine_only_moved_nifti_file)
-    moving_resampled_obj = resample(moving_obj,SM_SIZE,out_val=item["out_val"])
+    moving_resampled_obj = resample(moving_obj,SM_SIZE,out_val=-1000)
     moving_resampled_obj = rescale_intensity(moving_resampled_obj)
 
     warp_file = os.path.join(output_folder,'sm-wrap.nii.gz')
@@ -120,8 +126,8 @@ def register_transform(fixed_nifti_file,moving_list,output_folder):
 
     with tf.device(device):
         # load model and predict
-        #config = dict(inshape=inshape, input_model=None) **config
-        warp = vxm.networks.VxmDense.load(MODEL_FILE).register(sm_moving, sm_fixed)
+        config = dict(inshape=inshape, input_model=None)
+        warp = vxm.networks.VxmDense.load(MODEL_FILE,**config).register(sm_moving, sm_fixed)
         # just checking if Transform works with warp...
         sm_moved = vxm.networks.Transform(inshape, nb_feats=nb_feats).predict([sm_moving, warp])
 
@@ -135,7 +141,7 @@ def register_transform(fixed_nifti_file,moving_list,output_folder):
             lg_moved_file = item["lg_moved_file"]
             # transform with `rescale` specified
             lg_moving = vxm.py.utils.load_volfile(lg_affine_only_moved_file, add_batch_axis=True, add_feat_axis=add_feat_axis)
-            _, lg_fixed_affine = vxm.py.utils.load_volfile(fixed_nifti_file, add_batch_axis=True, add_feat_axis=add_feat_axis,ret_affine=True)
+            _, lg_fixed_affine = vxm.py.utils.load_volfile(lg_fixed_file, add_batch_axis=True, add_feat_axis=add_feat_axis,ret_affine=True)
             lg_inshape = lg_moving.shape[1:-1]
             lg_moved = vxm.networks.Transform(lg_inshape, rescale=RESCALE_FACTOR, nb_feats=nb_feats).predict([lg_moving, warp])
             vxm.py.utils.save_volfile(lg_moved.squeeze(), lg_moved_file, lg_fixed_affine)
