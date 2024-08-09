@@ -280,7 +280,8 @@ if __name__ == "__main__":
         raise ValueError("`moving_image` needs to be set for one item in moving_list")
 
     register_transform(fixed_nifti_file,moving_list,output_folder)
-
+    
+    print("qc...")
     if qc_mask_set:
         tgt_fixed_mask_file = os.path.join(output_folder,'fixed-mask.nii.gz')
         shutil.copy(qc_mask_fixed_file,tgt_fixed_mask_file)
