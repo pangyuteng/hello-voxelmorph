@@ -73,7 +73,7 @@ def register_transform(fixed_nifti_file,moving_list,output_folder):
             moving_list=moving_list,
         )
 
-        fixed_obj = sitk.ReadImage(lg_fixed_file)
+        fixed_obj = sitk.ReadImage(fixed_nifti_file)
         lg_fixed_resampled_obj = resample(fixed_obj,lg_out_size)
         sitk.WriteImage(lg_fixed_resampled_obj,lg_fixed_file)
 
@@ -93,6 +93,12 @@ def register_transform(fixed_nifti_file,moving_list,output_folder):
 
     if not all([os.path.exists(item['affine_only_moved_file']) for item in moving_list]):
         raise ValueError('elastix_register_and_transform failed!')
+
+    if not all([os.path.exists(item['lg_affine_only_moved_file']) for item in moving_list]):
+        raise ValueError('lg files failed to generate!')
+
+    if os.path.exists(lg_fixed_file) is False:
+        raise ValueError('lg_fixed_file failed to generate!')
 
     # downsize and resasmple to perform registration.
 
