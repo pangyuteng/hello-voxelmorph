@@ -81,7 +81,7 @@ def register_transform(fixed_nifti_file,moving_list,output_folder):
 
             lg_out_size = (np.array(SM_SIZE)*RESCALE_FACTOR).astype(int).tolist()
             moving_obj = sitk.ReadImage(affine_only_moved_file)
-            lg_moving_resampled_obj = resample(moving_obj,lg_out_size)
+            lg_moving_resampled_obj = resample(moving_obj,lg_out_size,out_val=item["out_val"])
             lg_moving_resampled_obj = sitk.Cast(lg_moving_resampled_obj,moving_obj.GetPixelID())
             sitk.WriteImage(lg_moving_resampled_obj,lg_affine_only_moved_file)
 
@@ -95,11 +95,11 @@ def register_transform(fixed_nifti_file,moving_list,output_folder):
     # downsize and resasmple to perform registration.
 
     fixed_obj = sitk.ReadImage(fixed_nifti_file)
-    fixed_resampled_obj = resample(fixed_obj,SM_SIZE)
+    fixed_resampled_obj = resample(fixed_obj,SM_SIZE,out_val=item["out_val"])
     fixed_resampled_obj = rescale_intensity(fixed_resampled_obj)
     
     moving_obj = sitk.ReadImage(affine_only_moved_nifti_file)
-    moving_resampled_obj = resample(moving_obj,SM_SIZE)
+    moving_resampled_obj = resample(moving_obj,SM_SIZE,out_val=item["out_val"])
     moving_resampled_obj = rescale_intensity(moving_resampled_obj)
 
     warp_file = os.path.join(output_folder,'sm-wrap.nii.gz')
@@ -128,6 +128,12 @@ def register_transform(fixed_nifti_file,moving_list,output_folder):
         warp = vxm.networks.VxmDense.load(MODEL_FILE, **config).register(sm_moving, sm_fixed)
         # just checking if Transform works with warp...
         sm_moved = vxm.networks.Transform(inshape, nb_feats=nb_feats).predict([sm_moving, warp])
+
+        # save warp
+        vxm.py.utils.save_volfile(warp.squeeze(), warp_file, fixed_affine)
+        # save moved image
+        vxm.py.utils.save_volfile(sm_moved.squeeze(), sm_moved_file, fixed_affine)
+
         for item in moving_list:
             lg_affine_only_moved_file = item["lg_affine_only_moved_file"]
             lg_moved_file = item["lg_moved_file"]
@@ -137,11 +143,6 @@ def register_transform(fixed_nifti_file,moving_list,output_folder):
             lg_inshape = lg_moving.shape[1:-1]
             lg_moved = vxm.networks.Transform(lg_inshape, rescale=RESCALE_FACTOR, nb_feats=nb_feats).predict([lg_moving, warp])
             vxm.py.utils.save_volfile(lg_moved.squeeze(), lg_moved_file, lg_fixed_affine)
-
-    # save warp
-    vxm.py.utils.save_volfile(warp.squeeze(), warp_file, fixed_affine)
-    # save moved image
-    vxm.py.utils.save_volfile(sm_moved.squeeze(), sm_moved_file, fixed_affine)
 
     # rescale back
     for item in moving_list:
@@ -153,9 +154,9 @@ def register_transform(fixed_nifti_file,moving_list,output_folder):
         moving_obj = sitk.ReadImage(moving_file)
         lg_moved_obj = sitk.ReadImage(lg_moved_file)
         lg_moved_obj = sitk.Cast(lg_moved_obj,moving_obj.GetPixelID())
-        moved_obj = resample(lg_moved_obj,moving_obj.GetSize())
-        if is_mask:
-            moved_obj = hole_fill(moved_obj)
+        moved_obj = resample(lg_moved_obj,moving_obj.GetSize(),out_val=item["out_val"])
+        #if is_mask:
+        #    moved_obj = hole_fill(moved_obj)
         moved_obj = sitk.Cast(moved_obj, moving_obj.GetPixelID())
         sitk.WriteImage(moved_obj,moved_file)
 
@@ -241,18 +242,23 @@ if __name__ == "__main__":
     qc_mask_set = False
     qc_mask_fixed_file = None
     qc_mask_moved_file = None
+    mask_moving_file = None
     for n,item in enumerate(moving_list):
         base_name = item["moved_basename"]
         moving_list[n]["affine_only_moved_file"] = os.path.join(output_folder,f"affine-only-moved-{base_name}")
         moving_list[n]["lg_affine_only_moved_file"] = os.path.join(output_folder,f"lg-affine-only-moved-{base_name}")
         moving_list[n]["lg_moved_file"] = os.path.join(output_folder,f"lg-moved-{base_name}")
         moving_list[n]["moved_file"] = os.path.join(output_folder,f"moved-{base_name}")
+
         if item.get("moving_image",None) is True:
             moving_image_set = True
+            shutil.move(moving_list[n]['moving_file'],os.path.join(output_folder,'moving-image.nii.gz'))
+
         if item.get("qc_mask",None) is True and content.get('qc_mask_fixed_file',None):
-            qc_masks_set = True
+            qc_mask_set = True
             qc_mask_fixed_file = content['qc_mask_fixed_file']
             qc_mask_moved_file = moving_list[n]["moved_file"]
+            shutil.move(moving_list[n]['moving_file'],os.path.join(output_folder,'moving-mask.nii.gz'))
 
     if moving_image_set is False:
         raise ValueError("`moving_image` needs to be set for one item in moving_list")
@@ -260,6 +266,8 @@ if __name__ == "__main__":
     register_transform(fixed_nifti_file,moving_list,output_folder)
 
     if qc_mask_set:
+        fixed_mask_file = qc_mask_fixed_file,os.path.join(output_folder,'fixed-mask.nii.gz')
+        shutil.move(qc_mask_fixed_file,fixed_mask_file)
         qc_json_file = os.path.join(output_folder,"qc.json")
         quality_check(qc_mask_fixed_file,qc_mask_moved_file,qc_json_file)
 

@@ -75,7 +75,7 @@ def rescale_intensity(src_obj,mask_obj=None,min_val=-1000,max_val=1000,out_min_v
         tgt_obj = tmp_obj
     return tgt_obj
 
-def resample(src_obj,out_size,method=sitk.sitkNearestNeighbor):
+def resample(src_obj,out_size,method=sitk.sitkNearestNeighbor,out_val=0):
     src_size = np.array(src_obj.GetSize())
     src_spacing = np.array(src_obj.GetSpacing())
     tgt_size = np.array(out_size)
@@ -86,7 +86,7 @@ def resample(src_obj,out_size,method=sitk.sitkNearestNeighbor):
     ref_obj.SetSpacing(tgt_spacing)
     tgt_obj = sitk.Resample(
         src_obj, ref_obj, sitk.Transform(),
-        method, 0, src_obj.GetPixelID(),
+        method, out_val, src_obj.GetPixelID(),
     )
     return tgt_obj
 
