@@ -56,7 +56,7 @@ RESCALE_FACTOR = 4
 #    + then scale down images back to the original image size.
 #
 
-def register_transform(fixed_nifti_file,moving_list,output_folder):
+def register_transform(fixed_nifti_file,moving_list,output_folder,fixed_mask_nifti_file=None):
 
     moving_item = [item for item in moving_list if item.get('moving_image',None) is True][0]
     moving_nifti_file = moving_item["moving_file"]
@@ -64,7 +64,8 @@ def register_transform(fixed_nifti_file,moving_list,output_folder):
 
     lg_out_size = (np.array(SM_SIZE)*RESCALE_FACTOR).astype(int).tolist()
     lg_fixed_file = os.path.join(output_folder,"lg-fixed-image.nii.gz")
-    
+    lg_fixed_mask_file = os.path.join(output_folder,"lg-fixed-mask.nii.gz")
+
     try:
         # initial affine transform:
         elastix_register_and_transform(
@@ -76,6 +77,10 @@ def register_transform(fixed_nifti_file,moving_list,output_folder):
         fixed_obj = sitk.ReadImage(fixed_nifti_file)
         lg_fixed_resampled_obj = resample(fixed_obj,lg_out_size)
         sitk.WriteImage(lg_fixed_resampled_obj,lg_fixed_file)
+        if fixed_mask_nifti_file:
+            fixed_mask_obj = sitk.ReadImage(fixed_mask_nifti_file)
+            fixed_mask_obj = resample(fixed_mask_obj,lg_out_size)
+            sitk.WriteImage(fixed_mask_obj,lg_fixed_mask_file)
 
         # rescale up 
         for item in moving_list:
@@ -279,7 +284,10 @@ if __name__ == "__main__":
     if moving_image_set is False:
         raise ValueError("`moving_image` needs to be set for one item in moving_list")
 
-    register_transform(fixed_nifti_file,moving_list,output_folder)
+    if qc_mask_set:
+        register_transform(fixed_nifti_file,moving_list,output_folder,fixed_mask_nifti_file=qc_mask_fixed_file)
+    else:
+        register_transform(fixed_nifti_file,moving_list,output_folder,)
     
     print("qc...")
     if qc_mask_set:
