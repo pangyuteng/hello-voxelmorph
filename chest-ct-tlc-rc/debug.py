@@ -49,14 +49,16 @@ fixed_mask_obj = resample(fixed_mask_obj,SM_SIZE,out_val=0)
 
 fixed_obj = sitk.ReadImage(fixed_file)
 fixed_resampled_obj = resample(fixed_obj,SM_SIZE,out_val=-1000)
-fixed_resampled_obj = rescale_intensity(fixed_resampled_obj,mask_obj=fixed_mask_obj,min_val=-1000,max_val=1000,out_min_val=0.0,out_max_val=1.0)
+fixed_resampled_obj = rescale_intensity(fixed_resampled_obj, # mask_obj=fixed_mask_obj,
+    min_val=-1000,max_val=1000,out_min_val=0.0,out_max_val=1.0)
 
 moving_mask_obj = sitk.ReadImage(moving_mask_file)
 moving_mask_obj = resample(moving_mask_obj,SM_SIZE,out_val=0)
 
 moving_obj = sitk.ReadImage(moving_file)
 moving_resampled_obj = resample(moving_obj,SM_SIZE,out_val=-1000)
-moving_resampled_obj = rescale_intensity(moving_resampled_obj,mask_obj=moving_mask_obj,min_val=-1000,max_val=1000,out_min_val=0.0,out_max_val=1.0)
+moving_resampled_obj = rescale_intensity(moving_resampled_obj, # mask_obj=moving_mask_obj,
+    min_val=-1000,max_val=1000,out_min_val=0.0,out_max_val=1.0)
 
 sitk.WriteImage(fixed_resampled_obj,sm_fixed_file)
 sitk.WriteImage(moving_resampled_obj,sm_moving_file)
@@ -67,7 +69,7 @@ device, nb_devices = vxm.tf.utils.setup_device(GPU_ID)
 # load moving and fixed images
 add_feat_axis = not MULTI_CHANNEL
 sm_fixed, fixed_affine = vxm.py.utils.load_volfile(
-    sm_moving_file, add_batch_axis=True, add_feat_axis=add_feat_axis, ret_affine=True)
+    sm_fixed_file, add_batch_axis=True, add_feat_axis=add_feat_axis, ret_affine=True)
 sm_moving = vxm.py.utils.load_volfile(sm_moving_file, add_batch_axis=True, add_feat_axis=add_feat_axis)
 
 inshape = sm_moving.shape[1:-1]

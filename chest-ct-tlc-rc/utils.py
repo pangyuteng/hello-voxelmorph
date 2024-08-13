@@ -62,10 +62,12 @@ def rescale_intensity(src_obj,mask_obj=None,min_val=-1000,max_val=1000,out_min_v
         img = sitk.GetArrayFromImage(tmp_obj)
 
         dilated = morphology.binary_dilation(
-            mask, morphology.ball(radius=3)
+            mask>0, morphology.ball(radius=3)
         )
-        border = np.logical_and(dilated==1,mask==0)
-        img[border==1]=out_max_val
+        #border = np.logical_and(dilated==1,mask==0)
+        #img[border==1]=out_max_val
+        #img[border==0]=min_val
+        img[dilated==0]=0
 
         tgt_obj = sitk.GetImageFromArray(img)
         tgt_obj.SetSpacing(tmp_obj.GetSpacing())

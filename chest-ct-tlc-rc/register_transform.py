@@ -129,7 +129,7 @@ def register_transform(fixed_nifti_file,moving_list,output_folder,fixed_mask_nif
     # load moving and fixed images
     add_feat_axis = not MULTI_CHANNEL
     sm_fixed, fixed_affine = vxm.py.utils.load_volfile(
-        sm_moving_file, add_batch_axis=True, add_feat_axis=add_feat_axis, ret_affine=True)
+        sm_fixed_file, add_batch_axis=True, add_feat_axis=add_feat_axis, ret_affine=True)
     sm_moving = vxm.py.utils.load_volfile(sm_moving_file, add_batch_axis=True, add_feat_axis=add_feat_axis)
 
     inshape = sm_moving.shape[1:-1]
