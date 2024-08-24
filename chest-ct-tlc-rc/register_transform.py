@@ -150,15 +150,26 @@ def register_transform(fixed_nifti_file,moving_list,output_folder,fixed_mask_nif
         for item in moving_list:
             lg_affine_only_moved_file = item["lg_affine_only_moved_file"]
             lg_moved_file = item["lg_moved_file"]
+            is_mask = item["is_mask"]
             # transform with `rescale` specified
             lg_moving = vxm.py.utils.load_volfile(lg_affine_only_moved_file, add_batch_axis=True, add_feat_axis=add_feat_axis)
             _, lg_fixed_affine = vxm.py.utils.load_volfile(lg_fixed_file, add_batch_axis=True, add_feat_axis=add_feat_axis,ret_affine=True)
             lg_inshape = lg_moving.shape[1:-1]
-            lg_moved = vxm.networks.Transform(lg_inshape, rescale=RESCALE_FACTOR, nb_feats=nb_feats).predict([lg_moving, warp])
+
+            if is_mask:
+                interp_method = 'nearest'
+            else:
+                interp_method = 'linear'
+
+            lg_moved = vxm.networks.Transform(lg_inshape,
+                rescale=RESCALE_FACTOR,
+                nb_feats=nb_feats,
+                interp_method=interp_method).predict([lg_moving, warp])
+
             vxm.py.utils.save_volfile(lg_moved.squeeze(), lg_moved_file, lg_fixed_affine)
 
-    raise NotImplementedError("TODO: TRY USING SIMPLE ELASTIX FOR RESAMPLE INTEGER!!! try  in debug.py first!")
     # rescale back
+    fixed_obj = sitk.ReadImage(fixed_nifti_file)
     for item in moving_list:
         moving_file = item["moving_file"]
         moved_file = item["moved_file"]
@@ -168,9 +179,7 @@ def register_transform(fixed_nifti_file,moving_list,output_folder,fixed_mask_nif
         moving_obj = sitk.ReadImage(moving_file)
         lg_moved_obj = sitk.ReadImage(lg_moved_file)
         lg_moved_obj = sitk.Cast(lg_moved_obj,moving_obj.GetPixelID())
-        moved_obj = resample(lg_moved_obj,moving_obj.GetSize(),out_val=item["out_val"])
-        if is_mask:
-           moved_obj = int_hole_fill(moved_obj)
+        moved_obj = resample(lg_moved_obj,fixed_obj.GetSize(),out_val=item["out_val"])
         moved_obj = sitk.Cast(moved_obj, moving_obj.GetPixelID())
         sitk.WriteImage(moved_obj,moved_file)
 
