@@ -17,7 +17,7 @@
             "is_mask": true
         },
         {
-            "moving_file": "lungqia/tlc-2/lq.nii.gzz",
+            "moving_file": "lungqia/tlc-2/lq.nii.gz",
             "moved_basename": "lq.nii.gz",
             "out_val": 0,
             "is_mask": true
