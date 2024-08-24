@@ -157,6 +157,7 @@ def register_transform(fixed_nifti_file,moving_list,output_folder,fixed_mask_nif
             lg_moved = vxm.networks.Transform(lg_inshape, rescale=RESCALE_FACTOR, nb_feats=nb_feats).predict([lg_moving, warp])
             vxm.py.utils.save_volfile(lg_moved.squeeze(), lg_moved_file, lg_fixed_affine)
 
+    raise NotImplementedError("TODO: TRY USING SIMPLE ELASTIX FOR RESAMPLE INTEGER!!! try  in debug.py first!")
     # rescale back
     for item in moving_list:
         moving_file = item["moving_file"]

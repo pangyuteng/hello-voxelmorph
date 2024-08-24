@@ -41,6 +41,7 @@ sm_moving_file = os.path.join(output_folder,'sm-moving.nii.gz')
 warp_file = os.path.join(output_folder,'sm-wrap.nii.gz')
 sm_moved_file = os.path.join(output_folder,'sm-moved.nii.gz')
 
+raise NotImplementedError("TRY USING SIMPLE ELASTIX FOR RESAMPLE INTEGER!!!")
 
 # maybe we actually need to crop!!!
 
