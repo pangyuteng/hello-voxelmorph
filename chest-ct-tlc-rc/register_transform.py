@@ -22,7 +22,7 @@ from skimage.measure import label, regionprops
 from utils import (
     resample, 
     rescale_intensity, 
-    hole_fill,
+    int_hole_fill,
     remove_dots,
     elastix_register_and_transform,
 )
@@ -168,8 +168,8 @@ def register_transform(fixed_nifti_file,moving_list,output_folder,fixed_mask_nif
         lg_moved_obj = sitk.ReadImage(lg_moved_file)
         lg_moved_obj = sitk.Cast(lg_moved_obj,moving_obj.GetPixelID())
         moved_obj = resample(lg_moved_obj,moving_obj.GetSize(),out_val=item["out_val"])
-        #if is_mask:
-        #    moved_obj = hole_fill(moved_obj)
+        if is_mask:
+           moved_obj = int_hole_fill(moved_obj)
         moved_obj = sitk.Cast(moved_obj, moving_obj.GetPixelID())
         sitk.WriteImage(moved_obj,moved_file)
 

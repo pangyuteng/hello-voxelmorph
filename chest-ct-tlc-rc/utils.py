@@ -30,14 +30,25 @@ def remove_dots(mask_obj):
 # to compute dice and view masked suv
 # to be consistent, we fill up the holes for the lung masks for both modalities
 #
-def hole_fill(mask_obj):
-    mask = sitk.GetArrayFromImage(mask_obj)
-    label_img = label(mask==0)
+from skimage.segmentation import watershed
+
+def int_hole_fill(int_image_obj):
+    image = sitk.GetArrayFromImage(int_image_obj)
+    
+    image = image.astype(np.int)
+    
+    distance = (image.copy()>1).astype(np.int)
+
+    label_img = label(image==0)
     regions = sorted(regionprops(label_img),key=lambda r: r.area,reverse=True)
     bkgd_val = regions[0].label
+    mask = np.zeros_like(image)
     mask[label_img!=bkgd_val] = 1
     mask = morphology.binary_closing(mask).astype(np.int16)
-    tgt_obj = sitk.GetImageFromArray(mask)
+    
+    image_watershed = watershed(-distance, image, mask=mask)
+
+    tgt_obj = sitk.GetImageFromArray(image_watershed)
     tgt_obj.SetSpacing(mask_obj.GetSpacing())
     tgt_obj.SetOrigin(mask_obj.GetOrigin())
     tgt_obj.SetDirection(mask_obj.GetDirection())
