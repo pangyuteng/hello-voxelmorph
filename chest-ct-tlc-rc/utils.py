@@ -32,26 +32,26 @@ def remove_dots(mask_obj):
 #
 from skimage.segmentation import watershed
 
-def int_hole_fill(int_image_obj):
-    image = sitk.GetArrayFromImage(int_image_obj)
-    
+def int_hole_fill(image_obj):
+    image = sitk.GetArrayFromImage(image_obj)
     image = image.astype(np.int)
     
-    distance = (image.copy()>1).astype(np.int)
-
+    # locate background
     label_img = label(image==0)
     regions = sorted(regionprops(label_img),key=lambda r: r.area,reverse=True)
     bkgd_val = regions[0].label
+    # generate foreground
     mask = np.zeros_like(image)
     mask[label_img!=bkgd_val] = 1
     mask = morphology.binary_closing(mask).astype(np.int16)
-    
+    # watershed with existing foreground values
+    distance = mask.astype(np.int)
     image_watershed = watershed(-distance, image, mask=mask)
 
     tgt_obj = sitk.GetImageFromArray(image_watershed)
-    tgt_obj.SetSpacing(mask_obj.GetSpacing())
-    tgt_obj.SetOrigin(mask_obj.GetOrigin())
-    tgt_obj.SetDirection(mask_obj.GetDirection())
+    tgt_obj.SetSpacing(image_obj.GetSpacing())
+    tgt_obj.SetOrigin(image_obj.GetOrigin())
+    tgt_obj.SetDirection(image_obj.GetDirection())
     return tgt_obj
 
 def rescale_intensity(src_obj,mask_obj=None,min_val=-1000,max_val=1000,out_min_val=0.0,out_max_val=1.0):
