@@ -1,4 +1,13 @@
 
+inst = RegisterHelper()
+inst.setFixImage()
+inst.setFixMask() # optional
+inst.setMovingImage()
+inst.setMovingMask() # optional
+inst.register()
+inst.setMovingList([])
+inst.transform()
+
 import os
 import sys
 import ast

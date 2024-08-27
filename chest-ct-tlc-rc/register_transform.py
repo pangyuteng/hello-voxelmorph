@@ -20,10 +20,8 @@ import shutil
 from skimage.measure import label, regionprops
 
 from utils import (
-    resample, 
-    rescale_intensity, 
-    int_hole_fill,
-    remove_dots,
+    resample,
+    rescale_intensity,
     elastix_register_and_transform,
 )
 
