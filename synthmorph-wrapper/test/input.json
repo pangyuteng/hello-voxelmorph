@@ -1,27 +1,27 @@
 {
-    "fixed_file": "lungqia/tlc-1/image.nii.gz",
-    "qc_mask_fixed_file": "lungqia/tlc-1/lung.nii.gz",
+    "fixed_file": "image-1/image.nii.gz",
+    "qc_mask_fixed_file": "image-1/lung.nii.gz",
     "moving_list": [
         {
             "moving_image": true,
-            "moving_file": "lungqia/tlc-2/image.nii.gz",
+            "moving_file": "image-2/image.nii.gz",
             "moved_basename": "image.nii.gz",
             "out_val": -1000,
             "is_mask": false
         },
         {
             "qc_mask": true,
-            "moving_file": "lungqia/tlc-2/lung.nii.gz",
+            "moving_file": "image-2/lung.nii.gz",
             "moved_basename": "lung.nii.gz",
             "out_val": 0,
             "is_mask": true
         },
         {
-            "moving_file": "lungqia/tlc-2/lq.nii.gz",
-            "moved_basename": "lq.nii.gz",
+            "moving_file": "image-2/landmarks.nii.gz",
+            "moved_basename": "landmarks.nii.gz",
             "out_val": 0,
             "is_mask": true
         }
     ],
-    "output_folder":"moved-1-2"
+    "output_folder":"moved"
 }

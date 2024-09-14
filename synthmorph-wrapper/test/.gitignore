@@ -1,0 +1,5 @@
+*.zip
+*.dcm
+image-1/image.nii.gz
+image-2/image.nii.gz
+moved
