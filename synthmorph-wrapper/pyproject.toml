@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "synthmorph_wrapper"
+version = "0.1.0"
+dependencies = [
+    'voxelmorph',
+    'SimpleITK-SimpleElastix',
+]
+
+[tool.setuptools.packages.find]
+# All the following settings are optional:
+where = ["."]  # ["."] by default
+include = ["synthmorph_wrapper*"]  # ["*"] by default
+exclude = ["test*"]  # empty by default
+namespaces = false  # true by default
+
+[tool.setuptools]
+include-package-data = true

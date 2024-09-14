@@ -27,7 +27,9 @@ from utils import (
 
 # voxelmorph config
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_FILE = os.path.join(THIS_DIR,'shapes-dice-vel-3-res-8-16-32-256f.h5')
+# MODEL_FILE = os.path.join(THIS_DIR,'shapes-dice-vel-3-res-8-16-32-256f.h5')
+MODEL_FILE = "/opt/synthmorph_wrapper/shapes-dice-vel-3-res-8-16-32-256f.h5"
+include-package-data
 GPU_ID = None #0, None - for cpu
 MULTI_CHANNEL = False
 SM_SIZE = (128,128,128)
