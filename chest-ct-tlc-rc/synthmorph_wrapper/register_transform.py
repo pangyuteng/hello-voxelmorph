@@ -54,7 +54,7 @@ RESCALE_FACTOR = 4
 #    + then scale down images back to the original image size.
 #
 
-def register_transform(fixed_nifti_file,moving_list,output_folder,fixed_mask_nifti_file=None):
+def _register_transform_core(fixed_nifti_file,moving_list,output_folder,fixed_mask_nifti_file=None):
 
     moving_item = [item for item in moving_list if item.get('moving_image',None) is True][0]
     moving_nifti_file = moving_item["moving_file"]
@@ -243,22 +243,12 @@ sample json content is provided below:
 
 
 """
+def register_transform(content_dict):
 
-if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(description='details',
-        usage='use "%(prog)s --help" for more information',
-        formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('json_file',default=str,help=HELP_CONTENT)
-    args = parser.parse_args()
-
-    with open(args.json_file,'r') as f:
-        content = json.loads(f.read())
-
-    # obtain and check json content
-    fixed_nifti_file = content['fixed_file']
-    moving_list = content['moving_list']
-    output_folder = content['output_folder']
+    # obtain and check json content_dict
+    fixed_nifti_file = content_dict['fixed_file']
+    moving_list = content_dict['moving_list']
+    output_folder = content_dict['output_folder']
     moving_image_set = False
     qc_mask_set = False
     qc_mask_fixed_file = None
@@ -283,9 +273,9 @@ if __name__ == "__main__":
             moving_image_set = True
             shutil.copy(moving_list[n]['moving_file'],os.path.join(output_folder,'moving-image.nii.gz'))
 
-        if item.get("qc_mask",None) is True and content.get('qc_mask_fixed_file',None):
+        if item.get("qc_mask",None) is True and content_dict.get('qc_mask_fixed_file',None):
             qc_mask_set = True
-            qc_mask_fixed_file = content['qc_mask_fixed_file']
+            qc_mask_fixed_file = content_dict['qc_mask_fixed_file']
             qc_mask_moved_file = moving_list[n]["moved_file"]
             shutil.copy(moving_list[n]['moving_file'],os.path.join(output_folder,'moving-mask.nii.gz'))
 
@@ -293,9 +283,9 @@ if __name__ == "__main__":
         raise ValueError("`moving_image` needs to be set for one item in moving_list")
 
     if qc_mask_set:
-        register_transform(fixed_nifti_file,moving_list,output_folder,fixed_mask_nifti_file=qc_mask_fixed_file)
+        _register_transform_core(fixed_nifti_file,moving_list,output_folder,fixed_mask_nifti_file=qc_mask_fixed_file)
     else:
-        register_transform(fixed_nifti_file,moving_list,output_folder,)
+        _register_transform_core(fixed_nifti_file,moving_list,output_folder,)
     
     print("qc...")
     if qc_mask_set:
@@ -306,12 +296,24 @@ if __name__ == "__main__":
 
     print('done')
 
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description='details',
+        usage='use "%(prog)s --help" for more information',
+        formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('json_file',default=str,help=HELP_CONTENT)
+    args = parser.parse_args()
+
+    with open(args.json_file,'r') as f:
+        content_dict = json.loads(f.read())
+
+    register_transform(content_dict)
+
 """
 
 docker run -it -u $(id -u):$(id -g) -w $PWD pangyuteng/voxelmorph:latest bash
 
 python register_transform.py input.json
-
 
 """
 
