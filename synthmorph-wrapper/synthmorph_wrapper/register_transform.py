@@ -9,6 +9,7 @@ import sys
 import ast
 import json
 import tempfile
+import warnings
 import traceback
 import argparse
 from pathlib import Path
@@ -245,7 +246,7 @@ sample json content is provided below:
 
 
 """
-def register_transform(content_dict):
+def register_transform(content_dict,overwrite=False):
 
     # obtain and check json content_dict
     fixed_nifti_file = content_dict['fixed_file']
@@ -259,7 +260,7 @@ def register_transform(content_dict):
 
     os.makedirs(output_folder,exist_ok=True)
     if len(os.listdir(output_folder)) > 0:
-        raise ValueError("files found in output_folder, please delete items in folder first!")
+        warnings.warn("files found in output_folder...")
 
     # for ease of debugging/visualization, copying fixed set to output_folder.
     shutil.copy(fixed_nifti_file,os.path.join(output_folder,'fixed-image.nii.gz'))
@@ -270,6 +271,8 @@ def register_transform(content_dict):
         moving_list[n]["lg_affine_only_moved_file"] = os.path.join(output_folder,f"lg-affine-only-moved-{base_name}")
         moving_list[n]["lg_moved_file"] = os.path.join(output_folder,f"lg-moved-{base_name}")
         moving_list[n]["moved_file"] = os.path.join(output_folder,f"moved-{base_name}")
+        if os.path.exists(moving_list[n]["moved_file"]) and overwrite is False:
+            raise ValueError("files found in output_folder, please delete items in folder first!")
 
         if item.get("moving_image",None) is True:
             moving_image_set = True
@@ -304,12 +307,13 @@ if __name__ == "__main__":
         usage='use "%(prog)s --help" for more information',
         formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('json_file',default=str,help=HELP_CONTENT)
+    parser.add_argument('-o','--overwrite',action='store_true')
     args = parser.parse_args()
 
     with open(args.json_file,'r') as f:
         content_dict = json.loads(f.read())
 
-    register_transform(content_dict)
+    register_transform(content_dict,overwrite=args.overwrite)
 
 """
 
