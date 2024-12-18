@@ -1,6 +1,6 @@
 {
     "fixed_file": "image-1/image.nii.gz",
-    "qc_mask_fixed_file": "image-1/lung.nii.gz",
+    "qc_mask_fixed_file": "image-1-mask/lung.nii.gz",
     "moving_list": [
         {
             "moving_image": true,
@@ -11,13 +11,13 @@
         },
         {
             "qc_mask": true,
-            "moving_file": "image-2/lung.nii.gz",
+            "moving_file": "image-2-mask/lung.nii.gz",
             "moved_basename": "lung.nii.gz",
             "out_val": 0,
             "is_mask": true
         },
         {
-            "moving_file": "image-2/landmarks.nii.gz",
+            "moving_file": "image-2-mask/landmarks.nii.gz",
             "moved_basename": "landmarks.nii.gz",
             "out_val": 0,
             "is_mask": true
