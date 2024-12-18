@@ -2,14 +2,18 @@ import os
 import sys
 import json
 import SimpleITK as sitk
+import pydicom
+
 from synthmorph_wrapper import register_transform as rt
 
 # json_file = sys.argv[1]
 def dcm2nifti(folder_path):
     nifti_file = os.path.join(folder_path,"image.nii.gz")
     if not os.path.exists(nifti_file):
-        dcm_list = [(int(x.split("-")[0]),x) for x in os.listdir(folder_path) if x.endswith(".dcm")]
-        dcm_list = [os.path.join(folder_path,x[1]) for x in sorted(dcm_list,key=lambda x:x[0])]
+        dcm_list = [os.path.join(folder_path,x) for x in os.listdir(folder_path) if x.endswith(".dcm")]
+        dcm_list = [x for x in sorted(dcm_list,key=lambda x: float(pydicom.dcmread(x,stop_before_pixels=True).SliceLocation))]
+        for x in dcm_list:
+            print(pydicom.dcmread(x,stop_before_pixels=True).SliceLocation,x)
         reader = sitk.ImageSeriesReader()
         reader.SetFileNames(dcm_list)
         img_obj = reader.Execute()
