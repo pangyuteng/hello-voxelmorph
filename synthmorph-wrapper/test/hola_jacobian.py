@@ -57,20 +57,21 @@ def main(fixed_file,fixed_mask_file,moving_file,moving_mask_file,output_folder,g
     print('---')
     is_label = False
     out_value = -2048
-    out_spacing = [1.0, 1.0, 1.0]
 
     original_spacing = fixed_obj.GetSpacing()
     # assume spacing is same
     assert(fixed_obj.GetSpacing()==moving_obj.GetSpacing())
 
+    # option one, fix spacing
+    out_spacing = [1.0, 1.0, 1.0]
     original_size = [max([x,y]) for x,y in zip(fixed_obj.GetSize(),moving_obj.GetSize())]
-    
     out_size = [
         int(np.round(original_size[0] * (original_spacing[0] / out_spacing[0]))),
         int(np.round(original_size[1] * (original_spacing[1] / out_spacing[1]))),
         int(np.round(original_size[2] * (original_spacing[2] / out_spacing[2])))
     ]
 
+    # option two, fix size, needs to be factor of 64 (check voxelmorph code)
     out_size = [128,128,128]
     out_spacing = [
         int(np.round(original_size[0] * (original_spacing[0] / out_size[0]))),
@@ -149,6 +150,8 @@ cd /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/synthmorph-wrappe
 
 docker run -it --gpus device=1 -u $(id -u):$(id -g) \
     -v /cvibraid:/cvibraid pangyuteng/synthmorph-wrapper:0.1.0 bash
+
+CUDA_VISIBLE_DEVICES=0 python hola_jacobian.py workdir/rv.nii.gz None workdir/tlc.nii.gz None workdir 0
 
 CUDA_VISIBLE_DEVICES=0 python hola_jacobian.py workdir/tlc.nii.gz None workdir/rv.nii.gz None workdir 0
 
