@@ -61,6 +61,7 @@ def main(fixed_file,fixed_mask_file,moving_file,moving_mask_file,output_folder,g
 
     original_spacing = fixed_obj.GetSpacing()
     # assume spacing is same
+    assert(fixed_obj.GetSpacing()==moving_obj.GetSpacing())
 
     original_size = [max([x,y]) for x,y in zip(fixed_obj.GetSize(),moving_obj.GetSize())]
     
