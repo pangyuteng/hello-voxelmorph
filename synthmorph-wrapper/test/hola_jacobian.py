@@ -7,20 +7,10 @@ import SimpleITK as sitk
 import voxelmorph as vxm
 from voxelmorph.py.utils import jacobian_determinant
 from synthmorph_wrapper import register_transform as rt
+from synthmorph_wrapper.utils import rescale_intensity
 
-def resample_img(itk_image, out_spacing=[2.0, 2.0, 2.0], is_label=False):
-    
-    # Resample images to 2mm spacing with SimpleITK
-    original_spacing = itk_image.GetSpacing()
-    original_size = itk_image.GetSize()
+def resample_img(itk_image, out_spacing, out_size, out_value, is_label):
 
-    out_size = [
-        int(np.round(original_size[0] * (original_spacing[0] / out_spacing[0]))),
-        int(np.round(original_size[1] * (original_spacing[1] / out_spacing[1]))),
-        int(np.round(original_size[2] * (original_spacing[2] / out_spacing[2])))]
-    print(out_size,'ideal')
-    out_size = [512,512,512]
-    print(out_size)
     resample = sitk.ResampleImageFilter()
     resample.SetOutputSpacing(out_spacing)
     resample.SetSize(out_size)
@@ -28,6 +18,7 @@ def resample_img(itk_image, out_spacing=[2.0, 2.0, 2.0], is_label=False):
     resample.SetOutputOrigin(itk_image.GetOrigin())
     resample.SetTransform(sitk.Transform())
     resample.SetDefaultPixelValue(itk_image.GetPixelIDValue())
+    resample.SetDefaultPixelValue(out_value)
 
     if is_label:
         resample.SetInterpolator(sitk.sitkNearestNeighbor)
@@ -38,29 +29,74 @@ def resample_img(itk_image, out_spacing=[2.0, 2.0, 2.0], is_label=False):
 
 def main(fixed_file,fixed_mask_file,moving_file,moving_mask_file,output_folder,gpu_id):
     
-    fixed_img =  sitk.ReadImage(fixed_file)
-    moving_img =  sitk.ReadImage(moving_file)
-    print(fixed_img.GetSize())
-    print(moving_img.GetSize())
-    print('---')
-    spacing = [2.0, 2.0, 2.0]
-    spacing = [1.0,1.0,1.0]
-    fixed_img = resample_img(fixed_img, out_spacing=spacing, is_label=False)
-    moving_img = resample_img(moving_img, out_spacing=spacing, is_label=False)
+    fixed_obj =  sitk.ReadImage(fixed_file)
+    moving_obj =  sitk.ReadImage(moving_file)
+    print(fixed_obj.GetSize())
+    print(moving_obj.GetSize())
 
-    print(fixed_img.GetSize())
-    print(moving_img.GetSize())
+    if os.path.exists(fixed_mask_file):
+        fixed_mask_obj =  sitk.ReadImage(fixed_mask_file)
+        label_shape_filter = sitk.LabelShapeStatisticsImageFilter()    
+        label_shape_filter.Execute(fixed_mask_obj)
+        bounding_box = label_shape_filter.GetBoundingBox(1)
+        cropped_size = bounding_box[int(len(bounding_box)/2):]
+        cropped_start = bounding_box[0:int(len(bounding_box)/2)]
+        fixed_obj = sitk.RegionOfInterest(fixed_obj,cropped_size,cropped_start)
+
+    if os.path.exists(moving_mask_file):
+        moving_mask_obj = sitk.LabelShapeStatisticsImageFilter()    
+        label_shape_filter.Execute(moving_mask_obj)
+        bounding_box = label_shape_filter.GetBoundingBox(1)
+        cropped_size = bounding_box[int(len(bounding_box)/2):]
+        cropped_start = bounding_box[0:int(len(bounding_box)/2)]
+        moving_obj = sitk.RegionOfInterest(moving_obj,cropped_size,cropped_start)
+    
+    print('---')
+    print(fixed_obj.GetSize())
+    print(moving_obj.GetSize())
+    print('---')
+    is_label = False
+    out_value = -2048
+    out_spacing = [1.0, 1.0, 1.0]
+
+    original_spacing = fixed_obj.GetSpacing()
+    # assume spacing is same
+
+    original_size = [max([x,y]) for x,y in zip(fixed_obj.GetSize(),moving_obj.GetSize())]
+    
+    out_size = [
+        int(np.round(original_size[0] * (original_spacing[0] / out_spacing[0]))),
+        int(np.round(original_size[1] * (original_spacing[1] / out_spacing[1]))),
+        int(np.round(original_size[2] * (original_spacing[2] / out_spacing[2])))
+    ]
+
+    out_size = [128,128,128]
+    out_spacing = [
+        int(np.round(original_size[0] * (original_spacing[0] / out_size[0]))),
+        int(np.round(original_size[1] * (original_spacing[1] / out_size[1]))),
+        int(np.round(original_size[2] * (original_spacing[2] / out_size[2])))
+    ]
+
+    print(out_size,'!!!!!!!!!!!!')
+    print(out_spacing,'!!!!!!!!!!!!')
+
     fixed_file = os.path.join(output_folder,"fixed.nii.gz")
     moving_file = os.path.join(output_folder,"moving.nii.gz")
+    moved_file = os.path.join(output_folder,"moved.nii.gz")
     wrap_file = os.path.join(output_folder,"wrap.nii.gz")
     jdet_file = os.path.join(output_folder,"jdet.nii.gz")
+    
+    fixed_obj = resample_img(fixed_obj,out_spacing,out_size,out_value,is_label)
+    moving_obj = resample_img(moving_obj,out_spacing,out_size,out_value,is_label)
 
-    sitk.WriteImage(fixed_img,fixed_file)
-    sitk.WriteImage(moving_img,moving_file)
-
+    fixed_obj = rescale_intensity(fixed_obj)
+    moving_obj = rescale_intensity(moving_obj)
+    print(fixed_obj.GetSize())
+    print(moving_obj.GetSize())
+    sitk.WriteImage(fixed_obj,fixed_file)
+    sitk.WriteImage(moving_obj,moving_file)
+    print("saved...")
     os.makedirs(output_folder,exist_ok=True)
-
-    fixed_file,fixed_mask_file,moving_file,moving_mask_file,output_folder,gpu_id
  
     device, nb_devices = vxm.tf.utils.setup_device(gpu_id)
     add_feat_axis = not rt.MULTI_CHANNEL
@@ -69,7 +105,6 @@ def main(fixed_file,fixed_mask_file,moving_file,moving_mask_file,output_folder,g
         fixed_file, add_batch_axis=True, add_feat_axis=add_feat_axis, ret_affine=True)
     sm_moving = vxm.py.utils.load_volfile(moving_file, add_batch_axis=True, add_feat_axis=add_feat_axis)
 
-
     inshape = sm_moving.shape[1:-1]
     nb_feats = sm_moving.shape[-1]
 
@@ -77,13 +112,14 @@ def main(fixed_file,fixed_mask_file,moving_file,moving_mask_file,output_folder,g
         # load model and predict
         config = dict(inshape=inshape, input_model=None)
         warp = vxm.networks.VxmDense.load(rt.MODEL_FILE,**config).register(sm_moving, sm_fixed)
+        sm_moved = vxm.networks.Transform(inshape, nb_feats=nb_feats).predict([sm_moving, warp])
         print(warp.shape)
         warp = warp.squeeze()
         print(warp.shape)
         jdet = jacobian_determinant(warp)
 
 
-
+    vxm.py.utils.save_volfile(sm_moved.squeeze(), moved_file, fixed_affine)
     vxm.py.utils.save_volfile(warp.squeeze(), wrap_file, fixed_affine)
     vxm.py.utils.save_volfile(jdet.squeeze(), jdet_file, fixed_affine)
 
@@ -106,9 +142,13 @@ if __name__ == "__main__":
 
 """
 
-CUDA_VISIBLE_DEVICES=2 python hola_jacobian.py \
-    moved/sm-fixed.nii.gz moved/sm-moving.nii.gz moved/jdet.nii.gz 2
+docker run -it -u $(id -u):$(id -g) --gpus 1 nvidia/cuda:12.4.0-runtime-ubuntu22.04 nvidia-smi
 
-CUDA_VISIBLE_DEVICES=2 python hola_jacobian.py workdir/tlc.nii.gz None workdir/rv.nii.gz None workdir 2
+cd /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/synthmorph-wrapper/test
+
+docker run -it --gpus device=1 -u $(id -u):$(id -g) \
+    -v /cvibraid:/cvibraid pangyuteng/synthmorph-wrapper:0.1.0 bash
+
+CUDA_VISIBLE_DEVICES=0 python hola_jacobian.py workdir/tlc.nii.gz None workdir/rv.nii.gz None workdir 0
 
 """
