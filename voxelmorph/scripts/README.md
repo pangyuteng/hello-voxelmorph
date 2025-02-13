@@ -3,6 +3,11 @@
 
 ```
 
+https://github.com/voxelmorph/voxelmorph
+
+VoxelMorph on neurite-OASIS demo
+https://colab.research.google.com/drive/1ZefmWXBupRNsnIbBbGquhVDsk-7R7L1S?usp=sharing
+
 docker run -it -u $(id -u):$(id -g) \
     -w $PWD -v /cvibraid:/cvibraid -v /radraid:/radraid \
     pangyuteng/voxelmorph bash
@@ -10,8 +15,6 @@ docker run -it -u $(id -u):$(id -g) \
 ```
 
 ### sample registration with sample weights from voxelmorph
-
-+ locate sample tlc,rv, set rv as fixed, tlc as moving.
 
 ```
 
@@ -24,5 +27,9 @@ condor_submit register.sub
 ### sample training
 
 
-images-RESEARCH-10123.csv source: https://gitlab.cvib.ucla.edu/qia/chest-ct-prm/-/blob/main/condor/images-RESEARCH-10123.csv
++ source file - downsampled tlc,rv nifti copied from pteng/misc-cvib-ops/rsch-10123/tlc-rv-query/gen_condor.py
+
+tl_masked.csv
+
+
 

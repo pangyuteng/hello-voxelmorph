@@ -3,3 +3,4 @@ docker_stderror
 *.csv
 *.h5
 register.args
+tl_masked.csv

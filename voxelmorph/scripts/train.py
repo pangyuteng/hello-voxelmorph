@@ -43,31 +43,34 @@ isplot = False
 #     ne.plot.slices(example_digits, cmaps=['gray'], do_colorbars=True)
 
 # fix data
-x_train = x_train.astype('float')/255
-x_val = x_val.astype('float')/255
-x_test = x_test.astype('float')/255
+# x_train = x_train.astype('float')/255
+# x_val = x_val.astype('float')/255
+# x_test = x_test.astype('float')/255
 
-# verify
-print('training maximum value', x_train.max())
+# # verify
+# print('training maximum value', x_train.max())
 
-example_digits = [f for f in x_train[idx, ...]]
-if isplot:
-    ne.plot.slices(example_digits, cmaps=['gray'], do_colorbars=True)
+# example_digits = [f for f in x_train[idx, ...]]
+# if isplot:
+#     ne.plot.slices(example_digits, cmaps=['gray'], do_colorbars=True)
 
-pad_amount = ((0, 0), (2,2), (2,2))
+# pad_amount = ((0, 0), (2,2), (2,2))
 
-# fix data
-x_train = np.pad(x_train, pad_amount, 'constant')
-x_val = np.pad(x_val, pad_amount, 'constant')
-x_test = np.pad(x_test, pad_amount, 'constant')
+# # fix data
+# x_train = np.pad(x_train, pad_amount, 'constant')
+# x_val = np.pad(x_val, pad_amount, 'constant')
+# x_test = np.pad(x_test, pad_amount, 'constant')
 
-# verify
-print('shape of training data', x_train.shape)
+# # verify
+# print('shape of training data', x_train.shape)
 
 # configure unet input shape (concatenation of moving and fixed images)
+weight_file = 'shapes-dice-vel-3-res-8-16-32-256f.h5'
 ndim = 2
 unet_input_features = 2
-inshape = (*x_train.shape[1:], unet_input_features)
+#inshape = (*x_train.shape[1:], unet_input_features)
+x_train_shape = [128,128,128]
+inshape = (*x_train_shape, unet_input_features)
 
 # configure unet features 
 nb_features = [
@@ -105,7 +108,10 @@ vxm_model = tf.keras.models.Model(inputs=unet.inputs, outputs=outputs)
 # build model using VxmDense
 inshape = x_train.shape[1:]
 vxm_model = vxm.networks.VxmDense(inshape, nb_features, int_steps=0)
-
+#config = dict(inshape=inshape, input_model=None)
+#unet = vxm.networks.VxmDense.load(weight_file, **config)
+vxm_model.load_weights(weight_file)
+sys.exit(1)
 # voxelmorph has a variety of custom loss classes
 losses = [vxm.losses.MSE().loss, vxm.losses.Grad('l2').loss]
 
@@ -189,3 +195,13 @@ if isplot:
     ne.plot.slices(images, titles=titles, cmaps=['gray'], do_colorbars=True)
     ne.plot.flow([val_pred[1].squeeze()], width=5)
 
+
+"""
+
+docker run -it -u $(id -u):$(id -g) \
+    -w $PWD -v /cvibraid:/cvibraid -v /radraid:/radraid \
+    pangyuteng/voxelmorph:latest bash
+
+
+
+"""
