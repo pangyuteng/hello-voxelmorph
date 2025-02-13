@@ -120,7 +120,8 @@ def main(fixed_file,fixed_mask_file,moving_file,moving_mask_file,output_folder,g
         print(warp.shape)
         jdet = jacobian_determinant(warp)
 
-
+    # TODO: alternatively upsample warp to 512,512,512
+    # then compute d(J) and also generate moved image.
     vxm.py.utils.save_volfile(sm_moved.squeeze(), moved_file, fixed_affine)
     vxm.py.utils.save_volfile(warp.squeeze(), wrap_file, fixed_affine)
     vxm.py.utils.save_volfile(jdet.squeeze(), jdet_file, fixed_affine)
@@ -143,6 +144,13 @@ if __name__ == "__main__":
     print("done")
 
 """
+
+"The Jacobian is a vector field related to the gradient of the warp. 
+Most people use the scalar-valued determinant of the Jacobian det(J) 
+(or, even more specifically, log(det(J))) to measure the properties of the warp
+The idea is that the magnitude of det(J) tells you about 
+expansions (>1) or contractions (<1)."
+https://discuss.afni.nimh.nih.gov/t/jacobian-meaning/2921
 
 docker run -it -u $(id -u):$(id -g) --gpus 1 nvidia/cuda:12.4.0-runtime-ubuntu22.04 nvidia-smi
 
