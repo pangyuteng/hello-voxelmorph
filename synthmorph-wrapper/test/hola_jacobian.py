@@ -6,7 +6,8 @@ import tensorflow as tf
 import SimpleITK as sitk
 import voxelmorph as vxm
 from voxelmorph.py.utils import jacobian_determinant
-from synthmorph_wrapper import register_transform as rt
+#from synthmorph_wrapper import register_transform as rt
+MODEL_FILE = '/opt/synthmorph_wrapper/shapes-dice-vel-3-res-8-16-32-256f.h5'
 from synthmorph_wrapper.utils import rescale_intensity
 
 def resample_img(itk_image, out_spacing, out_size, out_value, is_label):
@@ -101,7 +102,7 @@ def main(fixed_file,fixed_mask_file,moving_file,moving_mask_file,output_folder,g
     os.makedirs(output_folder,exist_ok=True)
  
     device, nb_devices = vxm.tf.utils.setup_device(gpu_id)
-    add_feat_axis = not rt.MULTI_CHANNEL
+    add_feat_axis = True
 
     sm_fixed, fixed_affine = vxm.py.utils.load_volfile(
         fixed_file, add_batch_axis=True, add_feat_axis=add_feat_axis, ret_affine=True)
@@ -113,7 +114,7 @@ def main(fixed_file,fixed_mask_file,moving_file,moving_mask_file,output_folder,g
     with tf.device(device):
         # load model and predict
         config = dict(inshape=inshape, input_model=None)
-        warp = vxm.networks.VxmDense.load(rt.MODEL_FILE,**config).register(sm_moving, sm_fixed)
+        warp = vxm.networks.VxmDense.load(MODEL_FILE,**config).register(sm_moving, sm_fixed)
         sm_moved = vxm.networks.Transform(inshape, nb_feats=nb_feats).predict([sm_moving, warp])
         print(warp.shape)
         warp = warp.squeeze()
@@ -159,8 +160,12 @@ cd /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/synthmorph-wrappe
 docker run -it --gpus device=1 -u $(id -u):$(id -g) \
     -v /cvibraid:/cvibraid pangyuteng/synthmorph-wrapper:0.1.0 bash
 
+CUDA_VISIBLE_DEVICES=0 python hola_jacobian.py workdir/tlc.nii.gz None workdir/rv.nii.gz None workdir 0
+
+to compare with conventional registration, we let TLC be the moving.
+if implying for TLC to RV, jacobian will be less than 1 for lung that shrinked (?)
 CUDA_VISIBLE_DEVICES=0 python hola_jacobian.py workdir/rv.nii.gz None workdir/tlc.nii.gz None workdir 0
 
-CUDA_VISIBLE_DEVICES=0 python hola_jacobian.py workdir/tlc.nii.gz None workdir/rv.nii.gz None workdir 0
+
 
 """
