@@ -9,22 +9,46 @@ def register(fixed_obj,moving_obj,work_dir,save_deformation=False):
 
     parameter_object = itk.ParameterObject.New()
     parameter_object.AddParameterFile(os.path.join(THIS_DIR,"param/affine.txt"))
-    parameter_object.AddParameterFile(os.path.join(THIS_DIR,"param/bspline1.txt"))
-    parameter_object.AddParameterFile(os.path.join(THIS_DIR,"param/bspline2.txt"))
+    #parameter_object.AddParameterFile(os.path.join(THIS_DIR,"param/bspline1.txt"))
+    #parameter_object.AddParameterFile(os.path.join(THIS_DIR,"param/bspline2.txt"))
 
-    elastix_object = itk.ElastixRegistrationMethod.New(fixed_obj,moving_obj)
-    elastix_object.SetParameterObject(parameter_object)
+    # https://github.com/InsightSoftwareConsortium/ITKElastix/blob/2f5756fc3970248da2565b4b87ca3df0a592d133/examples/ITK_Example10_Transformix_Jacobian.ipynb#L7
+    output_directory = os.path.join(work_dir,'itk-out')
+    os.makedirs(output_directory,exist_ok=True)
+    moved_obj, result_transform_parameters = itk.elastix_registration_method(
+        fixed_obj,moving_obj,
+        parameter_object=parameter_object,
+        log_to_console=True,
+        output_directory=output_directory)
 
-    elastix_object.SetLogToConsole(True)
+    # Calculate Jacobian matrix and it's determinant in a tuple
+    jacobians = itk.transformix_jacobian(
+        moving_obj, result_transform_parameters,
+        log_to_console=True,
+        output_directory=output_directory
+    )
 
-    # # You can set this to 1, but setting any number > 1 will result in a segmentation fault
-    # elastix_object.SetNumberOfThreads(2)
+    # Casting tuple to two numpy matrices for further calculations.
+    spatial_jacobian = np.asarray(jacobians[0]).astype(np.float32)
+    det_spatial_jacobian = np.asarray(jacobians[1]).astype(np.float32)
+    print(det_spatial_jacobian.shape)
 
-    elastix_object.UpdateLargestPossibleRegion()
-    moved_obj = elastix_object.GetOutput()
-
+    """
+    Inspect the deformation field by looking at the determinant of the Jacobian of Tµ(x). 
+    Values smaller than 1 indicate local compression, values larger than 1 indicate local 
+    expansion, and 1 means volume preservation. The measure is quantitative: a value of
+     1.1 means a 10% increase in volume. If this value deviates substantially from 1,
+      you may be worried (but maybe not if this is what you expect for your application). 
+      In case it is negative you have “foldings” in your transformation, and you definitely
+       should be worried. For more information see elastix manual.
+    """
     moved_file = os.path.join(work_dir,'moved.nii.gz')
     itk.imwrite(moved_obj,moved_file)
+
+    detj_obj = itk.GetImageFromArray(det_spatial_jacobian)
+    detj_obj.CopyInformation(moved_file)
+    detj_file = os.path.join(work_dir,'detj.nii.gz')
+    itk.imwrite(detj_obj,detj_file)
 
     # if save_deformation:
     #     transformixImageFilter = sitk.TransformixImageFilter()
@@ -57,8 +81,7 @@ docker run -it -u $(id -u):$(id -g) \
     -w $PWD -v /cvibraid:/cvibraid \
     pangyuteng/simple-elastix-new bash
 
-cp ../synthmorph-wrapper/test/workdir/fixed.nii.gz .
-cp ../synthmorph-wrapper/test/workdir/moving.nii.gz .
+# run resample.py first. then below
 
 python run_itk_elastix.py workdir/fixed.nii.gz workdir/moving.nii.gz workdir
 
