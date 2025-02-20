@@ -160,10 +160,9 @@ cd /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/synthmorph-wrappe
 docker run -it --gpus device=1 -u $(id -u):$(id -g) \
     -v /cvibraid:/cvibraid pangyuteng/synthmorph-wrapper:0.1.0 bash
 
-CUDA_VISIBLE_DEVICES=0 python hola_jacobian.py workdir/tlc.nii.gz None workdir/rv.nii.gz None workdir 0
-
 to compare with conventional registration, we let TLC be the moving.
 if implying for TLC to RV, jacobian will be less than 1 for lung that shrinked (?)
+
 CUDA_VISIBLE_DEVICES=0 python hola_jacobian.py workdir/rv.nii.gz None workdir/tlc.nii.gz None workdir 0
 
 
