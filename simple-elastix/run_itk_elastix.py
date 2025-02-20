@@ -45,10 +45,10 @@ def register(fixed_obj,moving_obj,work_dir,save_deformation=False):
     moved_file = os.path.join(work_dir,'moved.nii.gz')
     itk.imwrite(moved_obj,moved_file)
 
-    detj_obj = itk.GetImageFromArray(det_spatial_jacobian)
-    detj_obj.CopyInformation(moved_file)
-    detj_file = os.path.join(work_dir,'detj.nii.gz')
-    itk.imwrite(detj_obj,detj_file)
+    # detj_obj = itk.GetImageFromArray(det_spatial_jacobian)
+    # detj_obj.CopyInformation(moved_file)
+    # detj_file = os.path.join(work_dir,'detj.nii.gz')
+    # itk.imwrite(detj_obj,detj_file)
 
     # if save_deformation:
     #     transformixImageFilter = sitk.TransformixImageFilter()
@@ -77,9 +77,11 @@ if __name__ == "__main__":
 
 """
 
+https://github.com/pangyuteng/public-misc/tree/master/docker/registration/itk-elastix
+
 docker run -it -u $(id -u):$(id -g) \
     -w $PWD -v /cvibraid:/cvibraid \
-    pangyuteng/simple-elastix-new bash
+    pangyuteng/itk-elastix bash
 
 # run resample.py first. then below
 
