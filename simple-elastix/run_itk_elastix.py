@@ -64,7 +64,7 @@ def register(fixed_obj,moving_obj,work_dir,save_deformation=False):
     # return registered_obj
 
 if __name__ == "__main__":
-
+    raise ValueError("ABANDONED, resorted to SimpleITK binding, whats the point of itk-elastix, if at the end we are using Elastix")
     fixed_path = sys.argv[1]
     moving_path = sys.argv[2]
     work_dir = sys.argv[3]
