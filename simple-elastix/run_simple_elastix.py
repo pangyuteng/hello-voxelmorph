@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     fixed_obj = sitk.ReadImage(fixed_path)
     moving_obj = sitk.ReadImage(moving_path)
-    register(fixed_obj,moving_obj,work_dir)
+    register(fixed_obj,moving_obj,work_dir,save_deformation=True)
 
 """
 
