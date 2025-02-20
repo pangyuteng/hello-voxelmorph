@@ -1,9 +1,10 @@
 ```
 
-looks promising...
+using a blen of below Par0011 and Par0054 config
 
-ref https://github.com/SuperElastix/ElastixModelZoo/tree/master/models/Par0011
-
+ref
+https://github.com/SuperElastix/ElastixModelZoo/tree/master/models/Par0011
+https://github.com/SuperElastix/ElastixModelZoo/tree/master/models/Par0054
 
 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2749644
 
