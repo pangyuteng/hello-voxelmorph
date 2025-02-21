@@ -103,7 +103,7 @@ def resample(src_obj,out_size,method=sitk.sitkNearestNeighbor,out_val=0):
     )
     return tgt_obj
 
-def elastix_register_and_transform(fixed_image_file,moving_image_file,moving_list=[]):
+def elastix_register_and_transform(fixed_image_file,moving_image_file,moving_list=[],default_pixel_value_str='-1000'):
 
     fixed = sitk.ReadImage(fixed_image_file)
     moving = sitk.ReadImage(moving_image_file)
@@ -112,14 +112,16 @@ def elastix_register_and_transform(fixed_image_file,moving_image_file,moving_lis
     elastixImageFilter.SetFixedImage(fixed)
     elastixImageFilter.SetMovingImage(moving)
     elastixImageFilter.SetOutputDirectory('/tmp')
-    
+
     defaultTranslationParameterMap = sitk.GetDefaultParameterMap("translation")
-    # TODO: hard code bad
-    defaultTranslationParameterMap['DefaultPixelValue'] = ['-1000']
+    defaultTranslationParameterMap['DefaultPixelValue'] = [default_pixel_value_str]
     defaultTranslationParameterMap['MaximumNumberOfIterations'] = ['512'] 
+    defaultTranslationParameterMap['UseDirectionCosines'] = ['false']
+
     defaultAffineParameterMap = sitk.GetDefaultParameterMap("affine")
-    defaultAffineParameterMap['DefaultPixelValue'] = ['-1000']
+    defaultAffineParameterMap['DefaultPixelValue'] = [default_pixel_value_str]
     defaultAffineParameterMap['MaximumNumberOfIterations'] = ['512'] 
+    defaultAffineParameterMap['UseDirectionCosines'] = ['false']
     parameterMapVector = sitk.VectorOfParameterMap()
     parameterMapVector.append(defaultTranslationParameterMap)
     parameterMapVector.append(defaultAffineParameterMap)
