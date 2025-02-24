@@ -3,3 +3,4 @@ nibabel==3.0
 highdicom==0.22.0
 SimpleITK-SimpleElastix>=2.0.0rc2.dev909
 pandas>=2.0.3
+tensorflow-addons
