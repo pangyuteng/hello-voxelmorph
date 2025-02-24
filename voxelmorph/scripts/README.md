@@ -32,4 +32,4 @@ condor_submit register.sub
 tl_masked.csv
 
 
-
+python convert_tl_to_imagelist.py
