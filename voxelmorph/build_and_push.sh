@@ -1,2 +1,2 @@
-docker build -t pangyuteng/voxelmorph . --no-cache
+docker build -t pangyuteng/voxelmorph .
 docker push pangyuteng/voxelmorph
