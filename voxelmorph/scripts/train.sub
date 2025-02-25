@@ -4,7 +4,7 @@ docker_pull_policy = always
 
 executable = train.sh
 should_transfer_files = YES
-transfer_input_files = train.sh
+transfer_input_files = train.sh,tl.csv
 
 requirements = (OpSys == "LINUX" && Arch == "X86_64" && GPUMEM > 30000)
 
