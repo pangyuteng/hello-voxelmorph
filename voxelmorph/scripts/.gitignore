@@ -4,3 +4,4 @@ docker_stderror
 *.h5
 register.args
 tl_masked.csv
+workdir
