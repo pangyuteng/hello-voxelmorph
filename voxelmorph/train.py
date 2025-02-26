@@ -136,21 +136,25 @@ dec_nf = args.dec if args.dec else [32, 32, 32, 32, 32, 16, 16]
 # prepare model checkpoint save path
 save_filename = os.path.join(model_dir, '{epoch:04d}.h5')
 
-# build the model
-model = vxm.networks.VxmDense(
-    inshape=inshape,
-    nb_unet_features=[enc_nf, dec_nf],
-    bidir=args.bidir,
-    use_probs=args.use_probs,
-    int_steps=args.int_steps,
-    int_resolution=args.int_downsize,
-    src_feats=nfeats,
-    trg_feats=nfeats
-)
+if False:
+    # build the model
+    model = vxm.networks.VxmDense(
+        inshape=inshape,
+        nb_unet_features=[enc_nf, dec_nf],
+        bidir=args.bidir,
+        use_probs=args.use_probs,
+        int_steps=args.int_steps,
+        int_resolution=args.int_downsize,
+        src_feats=nfeats,
+        trg_feats=nfeats
+    )
 
-# load initial weights (if provided)
-if args.load_weights:
-    model.load_weights(args.load_weights)
+    # load initial weights (if provided)
+    if args.load_weights:
+        model.load_weights(args.load_weights)
+else:
+    config = dict(inshape=inshape, input_model=None)
+    model=vxm.networks.VxmDense.load(args.load_weights, **config)
 
 # prepare image loss
 if args.image_loss == 'ncc':

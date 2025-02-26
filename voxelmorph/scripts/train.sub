@@ -6,7 +6,7 @@ executable = train.sh
 should_transfer_files = YES
 transfer_input_files = train.sh,tl.csv
 
-requirements = (OpSys == "LINUX" && Arch == "X86_64" && GPUMEM > 30000)
+requirements = (OpSys == "LINUX" && Arch == "X86_64" && GPUMEM > 10000)
 
 when_to_transfer_output = ON_EXIT
 output = log/$(cluster).$(process).out
