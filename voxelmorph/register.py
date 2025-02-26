@@ -57,6 +57,10 @@ moving = vxm.py.utils.load_volfile(args.moving, add_batch_axis=True, add_feat_ax
 fixed, fixed_affine = vxm.py.utils.load_volfile(
     args.fixed, add_batch_axis=True, add_feat_axis=add_feat_axis, ret_affine=True)
 
+minval,maxval = -1000,1000
+moving = ((moving-minval)/(maxval-minval)).clip(0.1)
+fixed = ((fixed-minval)/(maxval-minval)).clip(0.1)
+
 inshape = moving.shape[1:-1]
 nb_feats = moving.shape[-1]
 
@@ -70,5 +74,6 @@ with tf.device(device):
 if args.warp:
     vxm.py.utils.save_volfile(warp.squeeze(), args.warp, fixed_affine)
 
+moving = (moved.clip(0,1)*(maxval-minval))+minval
 # save moved image
 vxm.py.utils.save_volfile(moved.squeeze(), args.moved, fixed_affine)
