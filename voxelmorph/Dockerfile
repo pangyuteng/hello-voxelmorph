@@ -11,3 +11,4 @@ RUN git clone https://github.com/voxelmorph/voxelmorph.git
 
 COPY --chmod=777 utils.py /usr/local/lib/python3.8/dist-packages/voxelmorph/py/utils.py
 COPY --chmod=777 train.py /opt/train.py
+COPY --chmod=777 register.py /opt/register.py
