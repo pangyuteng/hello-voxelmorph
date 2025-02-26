@@ -74,6 +74,7 @@ with tf.device(device):
 if args.warp:
     vxm.py.utils.save_volfile(warp.squeeze(), args.warp, fixed_affine)
 
-moving = (moved.clip(0,1)*(maxval-minval))+minval
+#moved = (moved.clip(0,1)*(maxval-minval))+minval
+#moved = moved.astype(np.int32)
 # save moved image
 vxm.py.utils.save_volfile(moved.squeeze(), args.moved, fixed_affine)
