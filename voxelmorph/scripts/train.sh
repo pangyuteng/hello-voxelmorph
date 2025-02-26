@@ -5,17 +5,17 @@ CUDA_VISIBLE_DEVICES=0 python \
     --img-list tl.csv \
     --model-dir /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/scripts/workdir \
     --gpu 0 --batch-size 2 \
-    --enc 256 256 256 256 \
-    --dec 256 256 256 256 256 256 \
-    --int-downsize 2 \
-    --lr 1e-4 \
-    --lambda 0.05 \
-    --kl-lambda 10 \
     --load-weights /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/scripts/shapes-dice-vel-3-res-8-16-32-256f.h5
 
+# --enc 256 256 256 256 \
+# --dec 256 256 256 256 256 256 \
 # --int-downsize 2 \
+# --lr 1e-4 \
+# --lambda 0.05 \
+# --kl-lambda 10 \
 # --int-steps 10 \
 # --gpu 0 --batch-size 6 \
+#
 #--load-weights /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/scripts/workdir/0020.h5
 # {'name': 'vxm_dense', 'reg_field': 'preintegrated', 
 # 'fill_value': None, 'hyp_model': None, 'input_model': None,
