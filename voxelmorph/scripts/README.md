@@ -44,4 +44,16 @@ docker run -it -u $(id -u):$(id -g) \
     -w $PWD -v /cvibraid:/cvibraid -v /radraid:/radraid \
     pangyuteng/voxelmorph:latest bash
 
+
+docker run --runtime=nvidia -it -u $(id -u):$(id -g) \
+    -w $PWD -v /mnt:/mnt \
+    pangyuteng/voxelmorph bash
+
+CUDA_VISIBLE_DEVICES=0 python \
+    /opt/register.py \
+    --gpu 0 \
+    --model tmp/0020.h5 \
+    --fixed tmp/tlc.nii.gz --moving tmp/rv.nii.gz --moved tmp/rv-moved.nii.gz
+
+
 ```
