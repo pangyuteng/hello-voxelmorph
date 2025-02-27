@@ -104,7 +104,7 @@ def load_volfile(
         img = nib.load(filename)
         vol = np.squeeze(img.dataobj).astype(np.float32)
         minval,maxval = -1000,1000
-        vol = ((vol-minval)/(maxval-minval)).clip(0.1)
+        vol = ((vol-minval)/(maxval-minval)).clip(0,1)
         affine = img.affine
     elif filename.endswith('.npy'):
         vol = np.load(filename)
