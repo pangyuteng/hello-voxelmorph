@@ -71,6 +71,7 @@ with tf.device(device):
 if args.warp:
     vxm.py.utils.save_volfile(warp.squeeze(), args.warp, fixed_affine)
 
+minval,maxval = -1000,1000
 print(np.min(moved),np.max(moved),'!!!')
 moved = (moved.clip(0,1)*(maxval-minval))+minval
 moved = moved.astype(np.int32)
