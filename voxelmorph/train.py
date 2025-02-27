@@ -94,6 +94,8 @@ parser.add_argument('--legacy-image-sigma', dest='image_sigma', type=float, defa
                     help='image noise parameter for miccai 2018 network (recommended value is 0.02 when --use-probs is enabled)')  # nopep8
 args = parser.parse_args()
 
+prob_same = 0.05
+
 # load and prepare training data
 train_files = vxm.py.utils.read_file_list(args.img_list, prefix=args.img_prefix,
                                           suffix=args.img_suffix)
@@ -109,7 +111,7 @@ if args.atlas:
     generator = vxm.generators.scan_to_atlas(train_files, atlas,
                                              batch_size=args.batch_size,
                                              bidir=args.bidir,
-                                             add_feat_axis=add_feat_axis)
+                                             add_feat_axis=add_feat_axis,prob_same=prob_same)
 else:
     # scan-to-scan generator
     generator = vxm.generators.scan_to_scan(
