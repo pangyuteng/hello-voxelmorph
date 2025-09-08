@@ -7,7 +7,8 @@ COPY requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt
 
 WORKDIR /opt
-RUN git clone https://github.com/voxelmorph/voxelmorph.git
+RUN git clone https://github.com/voxelmorph/voxelmorph.git \
+    && cd /opt/voxelmorph && git checkout ef31b7efe395be1fdf515038b9936fdaf8d826f0
 
 COPY --chmod=777 utils.py /usr/local/lib/python3.8/dist-packages/voxelmorph/py/utils.py
 COPY --chmod=777 train.py /opt/train.py
