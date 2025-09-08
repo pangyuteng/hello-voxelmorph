@@ -52,7 +52,7 @@ docker run --runtime=nvidia -it -u $(id -u):$(id -g) \
 CUDA_VISIBLE_DEVICES=0 python \
     /opt/register.py \
     --gpu 0 \
-    --model tmp/0020.h5 \
+    --model workdir/archive/1500.h5 \
     --fixed tmp/tlc.nii.gz --moving tmp/rv.nii.gz --moved tmp/rv-moved.nii.gz
 
 
