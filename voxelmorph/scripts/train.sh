@@ -1,11 +1,14 @@
 #!/bin/bash
 
-CUDA_VISIBLE_DEVICES=1 python \
+CUDA_VISIBLE_DEVICES=0 python \
     /opt/train.py \
     --img-list tl.csv \
     --model-dir /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/scripts/workdir \
     --gpu 1 --batch-size 2 \
-    --load-weights /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/scripts/shapes-dice-vel-3-res-8-16-32-256f.h5
+    --initial-epoch 220 \
+    --load-weights /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/scripts/workdir/0220.h5
+
+#    --load-weights /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/scripts/shapes-dice-vel-3-res-8-16-32-256f.h5
 
 # --enc 256 256 256 256 \
 # --dec 256 256 256 256 256 256 \
