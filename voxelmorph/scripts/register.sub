@@ -9,9 +9,9 @@ transfer_input_files = register.sh
 requirements = (OpSys == "LINUX" && Arch == "X86_64" && GPUMEM > 30000)
 
 when_to_transfer_output = ON_EXIT
-output = log/$(cluster).$(process).out
-error = log/$(cluster).$(process).err
-log = log/$(cluster).$(process).log
+output = rlog/$(cluster).$(process).out
+error = rlog/$(cluster).$(process).err
+log = rlog/$(cluster).$(process).log
 
 request_cpus = 1
 request_gpus = 1
