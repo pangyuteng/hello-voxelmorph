@@ -15,7 +15,7 @@ log = log/$(cluster).$(process).log
 
 request_cpus = 1
 request_gpus = 1
-request_memory = 30G
+request_memory = 50G
 request_disk = 10GB
 
 max_materialize = 1
