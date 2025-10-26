@@ -31,10 +31,12 @@ License.
 
 import os
 import argparse
+import tempfile
 import numpy as np
 import voxelmorph as vxm
 import tensorflow as tf
-
+import nibabel as nib
+from nibabel.processing import resample_to_output
 
 # parse commandline args
 parser = argparse.ArgumentParser()
@@ -44,28 +46,66 @@ parser.add_argument('--moved', required=True, help='warped image output filename
 parser.add_argument('--model', required=True, help='keras model for nonlinear registration')
 parser.add_argument('--warp', help='output warp deformation filename')
 parser.add_argument('-g', '--gpu', help='GPU number(s) - if not supplied, CPU is used')
-parser.add_argument('--multichannel', action='store_true',
-                    help='specify that data has multiple channels')
+
 args = parser.parse_args()
 
 # tensorflow device handling
 device, nb_devices = vxm.tf.utils.setup_device(args.gpu)
 
-# load moving and fixed images
-add_feat_axis = not args.multichannel
+"""
+multichannel = False
+add_batch_axis = True
+add_feat_axis = not multichannel
 moving = vxm.py.utils.load_volfile(args.moving, add_batch_axis=True, add_feat_axis=add_feat_axis)
 fixed, fixed_affine = vxm.py.utils.load_volfile(
     args.fixed, add_batch_axis=True, add_feat_axis=add_feat_axis, ret_affine=True)
+"""
 
+def myload(nifti_file):
+    # super custom rescale and resize
+    minval,maxval = -1000,1000
+    TARGET_SZ = 128
+    TARGET_SHAPE = [TARGET_SZ,TARGET_SZ,TARGET_SZ]
+
+    img_obj = nib.load(nifti_file)
+    moving_shape_np = np.array(img_obj.shape).astype(np.float32)
+    moving_spacing_np = np.array(img_obj.header.get_zooms()).astype(np.float32)
+    target_shape_np = np.array(TARGET_SHAPE).astype(np.float32)
+    target_spacing_np = moving_shape_np*moving_spacing_np/target_shape_np
+    moving_resize_factor = moving_spacing_np/target_spacing_np
+    # interesting `+1` in vox2out_vox https://github.com/nipy/nibabel/issues/1366
+    sm_img_obj = resample_to_output(img_obj,voxel_sizes=target_spacing_np)
+    sm_img = sm_img_obj.get_fdata()[:TARGET_SZ,:TARGET_SZ,:TARGET_SZ].astype(np.float32)
+    sm_img = ( (sm_img-minval)/(maxval-minval) ).clip(0,1)
+    sm_img = sm_img[np.newaxis, ... , np.newaxis]
+    return sm_img, sm_img_obj.affine
+
+moving, _ = myload(args.moving)
+fixed, fixed_affine = myload(args.fixed)
 
 inshape = moving.shape[1:-1]
-nb_feats = moving.shape[-1]
+nb_feats = 1
 
 with tf.device(device):
     # load model and predict
     config = dict(inshape=inshape, input_model=None)
     warp = vxm.networks.VxmDense.load(args.model, **config).register(moving, fixed)
     moved = vxm.networks.Transform(inshape, nb_feats=nb_feats).predict([moving, warp])
+
+"""
+    is_mask = False
+    if is_mask:
+        interp_method = 'nearest'
+    else:
+        interp_method = 'linear'
+
+    lg_moved = vxm.networks.Transform(lg_inshape,
+        rescale=RESCALE_FACTOR,
+        nb_feats=nb_feats,
+        interp_method=interp_method).predict([lg_moving, warp])
+
+    vxm.py.utils.save_volfile(lg_moved.squeeze(), lg_moved_file, lg_fixed_affine)
+"""
 
 # save warp
 if args.warp:
@@ -77,3 +117,13 @@ moved = (moved.clip(0,1)*(maxval-minval))+minval
 moved = moved.astype(np.int32)
 # save moved image
 vxm.py.utils.save_volfile(moved.squeeze(), args.moved, fixed_affine)
+
+"""
+
+docker run -it -u $(id -u):$(id -g) -w $PWD \
+-v /mnt:/mnt \
+pangyuteng/voxelmorph bash
+
+
+
+"""
