@@ -37,6 +37,7 @@ import voxelmorph as vxm
 import tensorflow as tf
 import nibabel as nib
 from nibabel.processing import resample_to_output
+from voxelmorph.py.utils import jacobian_determinant
 
 # parse commandline args
 parser = argparse.ArgumentParser()
@@ -45,6 +46,8 @@ parser.add_argument('--fixed', required=True, help='fixed image (target) filenam
 parser.add_argument('--moved', required=True, help='warped image output filename')
 parser.add_argument('--model', required=True, help='keras model for nonlinear registration')
 parser.add_argument('--warp', help='output warp deformation filename')
+parser.add_argument('--jdet', help='output jdet filename')
+
 parser.add_argument('-g', '--gpu', help='GPU number(s) - if not supplied, CPU is used')
 
 args = parser.parse_args()
@@ -91,6 +94,10 @@ with tf.device(device):
 # save warp
 if args.warp:
     vxm.py.utils.save_volfile(warp.squeeze(), args.warp, fixed_affine)
+# save jacobian determinant
+if args.jdet:
+    jdet = jacobian_determinant(warp.squeeze())
+    vxm.py.utils.save_volfile(jdet.squeeze(), args.jdet, fixed_affine)
 
 minval,maxval = -1000,1000
 moved = (moved.clip(0,1)*(maxval-minval))+minval
