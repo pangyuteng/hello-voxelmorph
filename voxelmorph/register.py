@@ -93,10 +93,13 @@ with tf.device(device):
 
 # save warp
 if args.warp:
+    print("warp",warp.squeeze().shape)
     vxm.py.utils.save_volfile(warp.squeeze(), args.warp, fixed_affine)
+
 # save jacobian determinant
 if args.jdet:
     jdet = jacobian_determinant(warp.squeeze())
+    print("jdet",jdet.squeeze().shape)
     vxm.py.utils.save_volfile(jdet.squeeze(), args.jdet, fixed_affine)
 
 minval,maxval = -1000,1000
