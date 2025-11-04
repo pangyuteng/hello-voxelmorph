@@ -5,7 +5,7 @@ CUDA_VISIBLE_DEVICES=0 python \
     --img-list tl.csv \
     --model-dir /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/scripts/workdir \
     --gpu 0 --batch-size 2 \
-    --initial-epoch 1500 --epochs 3000 --legacy-image-sigma 0.02 \
+    --initial-epoch 1500 --epochs 3000 --legacy-image-sigma 0.02 --use_probs \
     --load-weights /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/scripts/workdir/1500.h5
 
 #    --initial-epoch 1140 \
