@@ -47,6 +47,9 @@ parser.add_argument('--moved', required=True, help='warped image output filename
 parser.add_argument('--model', required=True, help='keras model for nonlinear registration')
 parser.add_argument('--warp', help='output warp deformation filename')
 parser.add_argument('--jdet', help='output jdet filename')
+parser.add_argument('--movingsm', help='output movingsm filename')
+parser.add_argument('--fixedsm', help='output fixedsm filename')
+
 
 parser.add_argument('-g', '--gpu', help='GPU number(s) - if not supplied, CPU is used')
 
@@ -73,14 +76,16 @@ def myload(nifti_file,minval=-1000,maxval=1000,out_minval=0,out_maxval=1,target_
     target_spacing_np = moving_shape_np*moving_spacing_np/target_shape_np
     moving_resize_factor = moving_spacing_np/target_spacing_np
     # interesting `+1` in vox2out_vox https://github.com/nipy/nibabel/issues/1366
-    out_img_obj = resample_to_output(img_obj,voxel_sizes=target_spacing_np)
+    out_img_obj = resample_to_output(img_obj,voxel_sizes=target_spacing_np,cval=minval)
     out_img = out_img_obj.get_fdata()[:target_sz,:target_sz,:target_sz].astype(np.float32)
     out_img = ( (out_img-minval)/(maxval-minval) ).clip(out_minval,out_maxval)
     out_img = out_img[np.newaxis, ... , np.newaxis]
-    return out_img, out_img_obj.affine
+    return out_img_obj, out_img, out_img_obj.affine
 
-moving, _ = myload(args.moving)
-fixed, fixed_affine = myload(args.fixed)
+moving_obj, moving, _ = myload(args.moving)
+fixed_obj, fixed, fixed_affine = myload(args.fixed)
+nib.save(moving_obj,args.movingsm)
+nib.save(fixed_obj,args.fixedsm)
 
 inshape = moving.shape[1:-1]
 nb_feats = 1
@@ -111,8 +116,8 @@ if False:
     rescale_factor = 4
     interp_method = 'linear'
 
-    lg_moving, _ = myload(args.moving,target_sz=512)
-    lg_fixed, lg_fixed_affine = myload(args.fixed,target_sz=512)
+    _, lg_moving, _ = myload(args.moving,target_sz=512)
+    _, lg_fixed, lg_fixed_affine = myload(args.fixed,target_sz=512)
     lg_inshape = lg_fixed.shape[1:-1]
 
     lg_moved = vxm.networks.Transform(lg_inshape,
