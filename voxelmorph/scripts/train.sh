@@ -5,12 +5,12 @@ CUDA_VISIBLE_DEVICES=0 python \
     --img-list tl.csv \
     --model-dir /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/scripts/workdir \
     --gpu 0 --batch-size 2 \
-    --initial-epoch 1500 --epochs 3000 --legacy-image-sigma 0.02 \
-    --load-weights /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/scripts/workdir/1500.h5
+    --initial-epoch 1480 --epochs 3000 \
+    --load-weights /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/scripts/workdir/1480.h5
 
-# --use-probs
+
 #    --initial-epoch 1140 \
-#    --load-weights /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/scripts/workdir/1500.h5
+#    --load-weights /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/scripts/workdir/1480.h5
 
 #    --load-weights /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/scripts/shapes-dice-vel-3-res-8-16-32-256f.h5
 
