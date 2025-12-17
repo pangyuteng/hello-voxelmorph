@@ -49,6 +49,7 @@ parser.add_argument('--warp', help='output warp deformation filename')
 parser.add_argument('--jdet', help='output jdet filename')
 parser.add_argument('--movingsm', help='output movingsm filename')
 parser.add_argument('--fixedsm', help='output fixedsm filename')
+parser.add_argument('--moved_extra_mask', help='additional moved')
 
 
 parser.add_argument('-g', '--gpu', help='GPU number(s) - if not supplied, CPU is used')
@@ -84,8 +85,11 @@ def myload(nifti_file,minval=-1000,maxval=1000,out_minval=0,out_maxval=1,target_
 
 moving_obj, moving, _ = myload(args.moving)
 fixed_obj, fixed, fixed_affine = myload(args.fixed)
-nib.save(moving_obj,args.movingsm)
-nib.save(fixed_obj,args.fixedsm)
+
+if args.movingsm:
+    nib.save(moving_obj,args.movingsm)
+if args.fixedsm:
+    nib.save(fixed_obj,args.fixedsm)
 
 inshape = moving.shape[1:-1]
 nb_feats = 1
@@ -95,6 +99,12 @@ with tf.device(device):
     config = dict(inshape=inshape, input_model=None)
     warp = vxm.networks.VxmDense.load(args.model, **config).register(moving, fixed)
     moved = vxm.networks.Transform(inshape, nb_feats=nb_feats).predict([moving, warp])
+
+if args.moved_extra_mask:
+        if is_mask:
+            interp_method = 'nearest' interp_method=interp_method
+        else:
+            interp_method = 'linear'
 
 # save warp
 if args.warp:

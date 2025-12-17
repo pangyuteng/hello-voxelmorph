@@ -34,6 +34,11 @@ tl_masked.csv
 
 python convert_tl_to_imagelist.py
 
+tl.csv was created
+
+10 cases (20 rows) moved manually to tl-for-testing.csv to be used for evaluation
+
+
 
 
 ```
