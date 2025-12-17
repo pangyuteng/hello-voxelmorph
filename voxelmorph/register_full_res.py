@@ -20,16 +20,14 @@ parser.add_argument('--warp', help='output warp deformation filename')
 parser.add_argument('--jdet', help='output jdet filename')
 parser.add_argument('--movingsm', help='output movingsm filename')
 parser.add_argument('--fixedsm', help='output fixedsm filename')
-raise NotImplementedError()
-# TODO: pending testing
-parser.add_argument('--moving_mask')
-parser.add_argument('--moved_mask')
+parser.add_argument('--moving-mask')
+parser.add_argument('--moved-mask')
 
 parser.add_argument('-g', '--gpu', help='GPU number(s) - if not supplied, CPU is used')
 
 args = parser.parse_args()
 
-assert(args.gpu is None) # ensure using CPU
+#assert(args.gpu is None) # ensure using CPU
 # tensorflow device handling
 device, nb_devices = vxm.tf.utils.setup_device(args.gpu)
 
@@ -64,16 +62,22 @@ nb_feats = 1
 with tf.device(device):
     # load model and predict
     config = dict(inshape=inshape, input_model=None)
+    print(moving.shape)
+    print(fixed.shape)
     warp = vxm.networks.VxmDense.load(args.model, **config).register(moving, fixed)
     moved = vxm.networks.Transform(inshape, nb_feats=nb_feats).predict([moving, warp])
 
 # save warp
 if args.warp:
+    myfolder = os.path.dirname(args.warp)
+    os.makedirs(myfolder,exist_ok=True)
     print("warp",warp.squeeze().shape)
     vxm.py.utils.save_volfile(warp.squeeze(), args.warp, fixed_affine)
 
 # save jacobian determinant
 if args.jdet:
+    myfolder = os.path.dirname(args.jdet)
+    os.makedirs(myfolder,exist_ok=True)
     jdet = jacobian_determinant(warp.squeeze())
     print("jdet",jdet.squeeze().shape)
     vxm.py.utils.save_volfile(jdet.squeeze(), args.jdet, fixed_affine)
@@ -84,18 +88,21 @@ moved = moved.astype(np.int32)
 if False:
     vxm.py.utils.save_volfile(moved.squeeze(), args.moved, fixed_affine)
 
+#sys.exit(1)
 rescale_factor = 4 # from 128 to 512.
 if args.moved:
+    myfolder = os.path.dirname(args.moved)
+    os.makedirs(myfolder,exist_ok=True)
     interp_method = 'linear'
 
     _, lg_moving, _ = myload(args.moving,target_sz=512,scale_intensity=False)
     _, lg_fixed, lg_fixed_affine = myload(args.fixed,target_sz=512)
     lg_inshape = lg_fixed.shape[1:-1]
-
-    lg_moved = vxm.networks.Transform(lg_inshape,
-        rescale=rescale_factor,
-        nb_feats=nb_feats,
-        interp_method=interp_method).predict([lg_moving, warp])
+    with tf.device(device):
+        lg_moved = vxm.networks.Transform(lg_inshape,
+            rescale=rescale_factor,
+            nb_feats=nb_feats,
+            interp_method=interp_method).predict([lg_moving, warp])
 
     #lg_moved = (lg_moved.clip(0,1)*(maxval-minval))+minval
     lg_moved = lg_moved.astype(np.int32)
@@ -103,15 +110,17 @@ if args.moved:
     vxm.py.utils.save_volfile(lg_moved.squeeze(), args.moved, lg_fixed_affine)
 
 if args.moving_mask:
+    myfolder = os.path.dirname(args.moving_mask)
+    os.makedirs(myfolder,exist_ok=True)
     interp_method = 'nearest'
 
     _, lg_moving, _ = myload(args.moving_mask,target_sz=512,scale_intensity=False)
     _, lg_fixed, lg_fixed_affine = myload(args.fixed,target_sz=512)
-    
-    lg_moved = vxm.networks.Transform(lg_inshape,
-        rescale=rescale_factor,
-        nb_feats=nb_feats,
-        interp_method=interp_method).predict([lg_moving, warp])
+    with tf.device(device):
+        lg_moved = vxm.networks.Transform(lg_inshape,
+            rescale=rescale_factor,
+            nb_feats=nb_feats,
+            interp_method=interp_method).predict([lg_moving, warp])
 
     lg_moved = lg_moved.astype(np.int32)
     vxm.py.utils.save_volfile(lg_moved.squeeze(), args.moved_mask, lg_fixed_affine)
@@ -119,22 +128,10 @@ if args.moving_mask:
 
 """
 
-docker run -it -u $(id -u):$(id -g) \
+docker run --memory=40g -it -u $(id -u):$(id -g) \
     -w $PWD -v /cvibraid:/cvibraid -v /radraid:/radraid \
     pangyuteng/voxelmorph bash
 
 python register_full_res.py \
---moving /radraid/pteng-public/tlc-rv-10123-downsampled/5aeb4c6ca234f5f929f72f194f02ed2e/3b62d55f785ff444070a919a26676e4c/img.nii.gz \
---fixed /radraid/pteng-public/tlc-rv-10123-downsampled/5aeb4c6ca234f5f929f72f194f02ed2e/a816e5f7c3835543cc02322bfee0e06d/img.nii.gz \
---moved /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/eval/post_training/moved_3b62d55f785ff444070a919a26676e4c.nii.gz
---warp /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/eval/post_training/warp.nii.gz
 
-parser.add_argument('--moving_mask')
-parser.add_argument('--moved_mask')
-
-
-fixed 
-moving 
-moved 
-weight /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/scripts/workdir/2380.h5
 """
