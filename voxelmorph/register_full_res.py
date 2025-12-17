@@ -7,7 +7,7 @@ import numpy as np
 import voxelmorph as vxm
 import tensorflow as tf
 import nibabel as nib
-from nibabel.processing import resample_to_output
+from nibabel.processing import resample_to_output, resample_from_to
 from voxelmorph.py.utils import jacobian_determinant
 
 # parse commandline args
@@ -48,13 +48,13 @@ def myload(nifti_file,minval=-1000,maxval=1000,out_minval=0,out_maxval=1,target_
     out_img = out_img[np.newaxis, ... , np.newaxis]
     return out_img_obj, out_img, out_img_obj.affine
 
-moving_obj, moving, _ = myload(args.moving)
-fixed_obj, fixed, fixed_affine = myload(args.fixed)
+sm_moving_obj, moving, _ = myload(args.moving)
+sm_fixed_obj, fixed, fixed_affine = myload(args.fixed)
 
 if args.movingsm:
-    nib.save(moving_obj,args.movingsm)
+    nib.save(sm_moving_obj,args.movingsm)
 if args.fixedsm:
-    nib.save(fixed_obj,args.fixedsm)
+    nib.save(sm_fixed_obj,args.fixedsm)
 
 inshape = moving.shape[1:-1]
 nb_feats = 1
@@ -88,15 +88,15 @@ moved = moved.astype(np.int32)
 if False:
     vxm.py.utils.save_volfile(moved.squeeze(), args.moved, fixed_affine)
 
-#sys.exit(1)
 rescale_factor = 4 # from 128 to 512.
+fixed_obj = nib.load(args.fixed)
+_, lg_fixed, lg_fixed_affine = myload(args.fixed,target_sz=512)
 if args.moved:
     myfolder = os.path.dirname(args.moved)
     os.makedirs(myfolder,exist_ok=True)
     interp_method = 'linear'
 
     _, lg_moving, _ = myload(args.moving,target_sz=512,scale_intensity=False)
-    _, lg_fixed, lg_fixed_affine = myload(args.fixed,target_sz=512)
     lg_inshape = lg_fixed.shape[1:-1]
     with tf.device(device):
         lg_moved = vxm.networks.Transform(lg_inshape,
@@ -104,10 +104,11 @@ if args.moved:
             nb_feats=nb_feats,
             interp_method=interp_method).predict([lg_moving, warp])
 
-    #lg_moved = (lg_moved.clip(0,1)*(maxval-minval))+minval
     lg_moved = lg_moved.astype(np.int32)
-    # TODO: you need to reshape this back
-    vxm.py.utils.save_volfile(lg_moved.squeeze(), args.moved, lg_fixed_affine)
+    lg_moved_obj = nib.Nifti1Image(lg_moved.squeeze(), lg_fixed_affine)
+    #reshape this back
+    lg_moved_obj = resample_from_to(lg_moved_obj,fixed_obj)
+    nib.save(lg_moved_obj, args.moved)
 
 if args.moving_mask:
     myfolder = os.path.dirname(args.moving_mask)
@@ -115,7 +116,6 @@ if args.moving_mask:
     interp_method = 'nearest'
 
     _, lg_moving, _ = myload(args.moving_mask,target_sz=512,scale_intensity=False)
-    _, lg_fixed, lg_fixed_affine = myload(args.fixed,target_sz=512)
     with tf.device(device):
         lg_moved = vxm.networks.Transform(lg_inshape,
             rescale=rescale_factor,
@@ -123,8 +123,10 @@ if args.moving_mask:
             interp_method=interp_method).predict([lg_moving, warp])
 
     lg_moved = lg_moved.astype(np.int32)
-    vxm.py.utils.save_volfile(lg_moved.squeeze(), args.moved_mask, lg_fixed_affine)
-
+    lg_moved_obj = nib.Nifti1Image(lg_moved.squeeze(), lg_fixed_affine)
+    #reshape this back
+    lg_moved_obj = resample_from_to(lg_moved_obj,fixed_obj)
+    nib.save(lg_moved_obj, args.moved_mask)
 
 """
 
