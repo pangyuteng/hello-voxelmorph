@@ -49,7 +49,6 @@ parser.add_argument('--warp', help='output warp deformation filename')
 parser.add_argument('--jdet', help='output jdet filename')
 parser.add_argument('--movingsm', help='output movingsm filename')
 parser.add_argument('--fixedsm', help='output fixedsm filename')
-parser.add_argument('--moved_extra_mask', help='additional moved')
 
 
 parser.add_argument('-g', '--gpu', help='GPU number(s) - if not supplied, CPU is used')
@@ -100,12 +99,6 @@ with tf.device(device):
     warp = vxm.networks.VxmDense.load(args.model, **config).register(moving, fixed)
     moved = vxm.networks.Transform(inshape, nb_feats=nb_feats).predict([moving, warp])
 
-if args.moved_extra_mask:
-        if is_mask:
-            interp_method = 'nearest' interp_method=interp_method
-        else:
-            interp_method = 'linear'
-
 # save warp
 if args.warp:
     print("warp",warp.squeeze().shape)
@@ -121,23 +114,6 @@ minval,maxval = -1000,1000
 moved = (moved.clip(0,1)*(maxval-minval))+minval
 moved = moved.astype(np.int32)
 vxm.py.utils.save_volfile(moved.squeeze(), args.moved, fixed_affine)
-
-if False:
-    rescale_factor = 4
-    interp_method = 'linear'
-
-    _, lg_moving, _ = myload(args.moving,target_sz=512)
-    _, lg_fixed, lg_fixed_affine = myload(args.fixed,target_sz=512)
-    lg_inshape = lg_fixed.shape[1:-1]
-
-    lg_moved = vxm.networks.Transform(lg_inshape,
-        rescale=rescale_factor,
-        nb_feats=nb_feats,
-        interp_method=interp_method).predict([lg_moving, warp])
-
-    lg_moved = (lg_moved.clip(0,1)*(maxval-minval))+minval
-    lg_moved = lg_moved.astype(np.int32)
-    vxm.py.utils.save_volfile(lg_moved.squeeze(), args.moved, lg_fixed_affine)
 
 
 """
