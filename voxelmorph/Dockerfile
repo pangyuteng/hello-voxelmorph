@@ -1,15 +1,14 @@
-FROM tensorflow/tensorflow:2.11.0-gpu
+FROM pytorch/pytorch:2.8.0-cuda12.9-cudnn9-devel
 
 RUN apt-get update && apt-get install git vim -yq
 
-RUN /usr/bin/python3 -m pip install --upgrade pip
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt
 
-WORKDIR /opt
-RUN git clone https://github.com/voxelmorph/voxelmorph.git \
-    && cd /opt/voxelmorph && git checkout ef31b7efe395be1fdf515038b9936fdaf8d826f0
+RUN mkdir /.config && chmod -R 777 /.config
 
-COPY --chmod=777 utils.py /usr/local/lib/python3.8/dist-packages/voxelmorph/py/utils.py
-COPY --chmod=777 train.py /opt/train.py
-COPY --chmod=777 register.py /opt/register.py
+COPY --chmod=777 train.py /opt
+COPY --chmod=777 register.py /opt
+COPY --chmod=777 register_full_res.py /opt
+
+ENV TF_ENABLE_ONEDNN_OPTS=0

@@ -29,7 +29,7 @@ args = parser.parse_args()
 
 #assert(args.gpu is None) # ensure using CPU
 # tensorflow device handling
-device, nb_devices = vxm.tf.utils.setup_device(args.gpu)
+device, nb_devices = vxm.utils.setup_device(args.gpu)
 
 
 def myload(nifti_file,minval=-1000,maxval=1000,out_minval=0,out_maxval=1,target_sz=128,scale_intensity=True):
@@ -132,7 +132,7 @@ if args.moving_mask:
 
 docker run --memory=40g -it -u $(id -u):$(id -g) \
     -w $PWD -v /cvibraid:/cvibraid -v /radraid:/radraid \
-    pangyuteng/voxelmorph bash
+    pangyuteng/voxelmorph:0.1.2 bash
 
 python register_full_res.py \
 

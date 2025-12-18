@@ -56,7 +56,7 @@ parser.add_argument('-g', '--gpu', help='GPU number(s) - if not supplied, CPU is
 args = parser.parse_args()
 
 # tensorflow device handling
-device, nb_devices = vxm.tf.utils.setup_device(args.gpu)
+device, nb_devices = vxm.utils.setup_device(args.gpu)
 
 """
 multichannel = False
@@ -118,10 +118,15 @@ vxm.py.utils.save_volfile(moved.squeeze(), args.moved, fixed_affine)
 
 """
 
-docker run -it -u $(id -u):$(id -g) -w $PWD \
--v /mnt:/mnt \
-pangyuteng/voxelmorph bash
+docker run --memory=40g -it -u $(id -u):$(id -g) \
+    -w $PWD -v /cvibraid:/cvibraid -v /radraid:/radraid \
+    pangyuteng/voxelmorph:0.1.2 bash
 
+
+CUDA_VISIBLE_DEVICES=0 python register.py --fixed /radraid/pteng-public/tlc-rv-10123-downsampled/5aeb4c6ca234f5f929f72f194f02ed2e/a816e5f7c3835543cc02322bfee0e06d/img.nii.gz \
+--moving /radraid/pteng-public/tlc-rv-10123-downsampled/5aeb4c6ca234f5f929f72f194f02ed2e/3b62d55f785ff444070a919a26676e4c/img.nii.gz \
+--moved ok.nii.gz \
+--model scripts/shapes-dice-vel-3-res-8-16-32-256f.h5
 
 
 """
