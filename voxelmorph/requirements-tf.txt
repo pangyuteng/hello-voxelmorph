@@ -4,5 +4,3 @@ highdicom==0.22.0
 SimpleITK-SimpleElastix>=2.0.0rc2.dev909
 pandas>=2.0.3
 tensorflow-addons
-FROM tensorflow/tensorflow:2.11.0-gpu
-RUN /usr/bin/python3 -m pip install --upgrade pip

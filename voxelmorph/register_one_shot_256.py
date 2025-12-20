@@ -261,6 +261,8 @@ not working , --gpu 0 and 0,1,2,3
 
 --gpu 0
 
+"TypeError: `output_signature` must contain objects that are subclass of `tf.TypeSpec` but found <class 'list'> which is not."
+
   File "register_one_shot_256.py", line 173, in <module>
     model.fit(generator,
   File "/usr/local/lib/python3.8/dist-packages/keras/utils/traceback_utils.py", line 70, in error_handler

@@ -1,0 +1,15 @@
+FROM tensorflow/tensorflow:2.11.0-gpu
+RUN /usr/bin/python3 -m pip install --upgrade pip
+
+RUN apt-get update && apt-get install git vim -yq
+
+COPY requirements.txt /tmp/requirements-tf.txt
+RUN pip install -r /tmp/requirements-tf.txt
+
+RUN mkdir -p /tmp/.cache/matplotlib && chmod -R 777 /tmp/.cache/matplotlib
+ENV MPLCONFIGDIR=/tmp/.cache/matplotlib
+ENV TF_ENABLE_ONEDNN_OPTS=0
+
+COPY --chmod=777 train.py /opt
+COPY --chmod=777 register.py /opt
+COPY --chmod=777 register_full_res.py /opt
