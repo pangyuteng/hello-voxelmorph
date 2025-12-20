@@ -3,8 +3,8 @@ RUN /usr/bin/python3 -m pip install --upgrade pip
 
 RUN apt-get update && apt-get install git vim -yq
 
-COPY requirements.txt /tmp/requirements-tf.txt
-RUN pip install -r /tmp/requirements-tf.txt
+COPY requirements-tf.txt /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt
 
 RUN mkdir -p /tmp/.cache/matplotlib && chmod -R 777 /tmp/.cache/matplotlib
 ENV MPLCONFIGDIR=/tmp/.cache/matplotlib
