@@ -89,7 +89,11 @@ add_feat_axis = not args.multichannel
 # scan-to-scan generator
 generator = vxm.generators.scan_to_scan(
     train_files, batch_size=args.batch_size, bidir=args.bidir, add_feat_axis=add_feat_axis)
-
+# output_signature = ( 
+#     [tf.TensorSpec(shape=(), dtype=tf.float32),tf.TensorSpec(shape=(), dtype=tf.float32)],
+#     [tf.TensorSpec(shape=(), dtype=tf.float32),tf.TensorSpec(shape=(), dtype=tf.float32)]
+# )
+# mygenerator = tf.data.Dataset.from_generator(generator,output_signature=output_signature)
 # extract shape and number of features from sampled input
 sample_shape = next(generator)[0][0].shape
 inshape = sample_shape[1:-1]
@@ -247,8 +251,47 @@ python register_one_shot_256.py \
 --moving tlc.nii.gz \
 --moved moved-256.nii.gz \
 --model tmp-256 --epochs=100 \
---gpu 0,1,2,3 --batch-size 4
 
+--batch-size 4 --gpu 0,1,2,3
 --batch-size=1 --gpu 0
+
+pangyuteng/voxelmorph:0.1.1
+
+not working , --gpu 0 and 0,1,2,3
+
+--gpu 0
+
+  File "register_one_shot_256.py", line 173, in <module>
+    model.fit(generator,
+  File "/usr/local/lib/python3.8/dist-packages/keras/utils/traceback_utils.py", line 70, in error_handler
+    raise e.with_traceback(filtered_tb) from None
+  File "/usr/local/lib/python3.8/dist-packages/neurite/tf/callbacks.py", line 566, in on_epoch_end
+    self.on_model_save(epoch, 0, logs=logs)
+  File "/usr/local/lib/python3.8/dist-packages/neurite/tf/callbacks.py", line 607, in on_model_save
+    self.model.layers[-(num_outputs + 1)].save(filepath, overwrite=True)
+AttributeError: 'VecInt' object has no attribute 'save'
+
+--gpu 0,1,2,3
+
+
+Epoch 1/100
+Traceback (most recent call last):
+  File "register_one_shot_256.py", line 173, in <module>
+    model.fit(generator,
+  File "/usr/local/lib/python3.8/dist-packages/keras/utils/traceback_utils.py", line 70, in error_handler
+    raise e.with_traceback(filtered_tb) from None
+  File "/tmp/__autograph_generated_filel9mgc4bd.py", line 15, in tf__train_function
+    retval_ = ag__.converted_call(ag__.ld(step_function), (ag__.ld(self), ag__.ld(iterator)), None, fscope)
+TypeError: in user code:
+
+    File "/usr/local/lib/python3.8/dist-packages/keras/engine/training.py", line 1249, in train_function  *
+        return step_function(self, iterator)
+    File "/usr/local/lib/python3.8/dist-packages/keras/engine/training.py", line 1232, in step_function  **
+        data = next(iterator)
+
+    TypeError: Input 'y' of 'Equal' Op has type variant that does not match type float32 of argument 'x'.
+
+
+
 
 """
