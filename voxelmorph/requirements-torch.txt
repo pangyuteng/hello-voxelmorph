@@ -1,8 +1,6 @@
-pandas==2.2.2
-numpy==1.26.4
-nibabel==5.3.2
+pandas
+numpy
+nibabel
 torch==2.8.0+cu129
-tf_keras==2.19.0
-tensorflow==2.19.0
-neurite @ https://github.com/adalca/neurite/archive/17aa080540b61e72ed1f5f37378df41c8278dc3e.zip
-voxelmorph @ https://github.com/voxelmorph/voxelmorph/archive/cc84aa7fe255bac6f3bad6f124106e61ea9312cf.zip
+neurite @ https://github.com/adalca/neurite/archive/02347d4cfcf15a295ba9d3e1c093d3329a16624e.zip
+voxelmorph @ https://github.com/voxelmorph/voxelmorph/archive/e0283979c543c49dd65e0ee6fe6bc0b61b4a2e56.zip
