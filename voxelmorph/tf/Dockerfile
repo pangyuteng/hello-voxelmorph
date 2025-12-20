@@ -1,6 +1,7 @@
-#FROM tensorflow/tensorflow:2.11.0-gpu
-#RUN /usr/bin/python3 -m pip install --upgrade pip
-FROM pytorch/pytorch:2.8.0-cuda12.9-cudnn9-devel
+
+FROM tensorflow/tensorflow:2.19.0-gpu
+RUN /usr/bin/python3 -m pip install --upgrade pip
+
 
 RUN apt-get update && apt-get install git vim -yq
 

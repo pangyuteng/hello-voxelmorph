@@ -1,7 +1,7 @@
 pandas==2.2.2
 numpy==1.26.4
 nibabel==5.3.2
-torch==2.8.0+cu129
+#torch==2.8.0+cu129
 tf_keras==2.19.0
 tensorflow==2.19.0
 neurite @ https://github.com/adalca/neurite/archive/17aa080540b61e72ed1f5f37378df41c8278dc3e.zip
