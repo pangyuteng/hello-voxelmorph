@@ -38,17 +38,6 @@ parser.add_argument('--lr', type=float, default=1e-4, help='learning rate (defau
 parser.add_argument('--cudnn-nondet', action='store_true',
                     help='disable cudnn determinism - might slow down training')
 
-# network architecture parameters
-parser.add_argument('--enc', type=int, nargs='+',
-                    help='list of unet encoder filters (default: 16 32 32 32)')
-parser.add_argument('--dec', type=int, nargs='+',
-                    help='list of unet decorder filters (default: 32 32 32 32 32 16 16)')
-parser.add_argument('--int-steps', type=int, default=7,
-                    help='number of integration steps (default: 7)')
-parser.add_argument('--int-downsize', type=int, default=2,
-                    help='flow downsample factor for integration (default: 2)')
-parser.add_argument('--bidir', action='store_true', help='enable bidirectional cost function')
-
 # loss hyperparameters
 parser.add_argument('--image-loss', default='mse',
                     help='image reconstruction loss - can be mse or ncc (default: mse)')
@@ -56,7 +45,7 @@ parser.add_argument('--lambda', type=float, dest='weight', default=0.01,
                     help='weight of deformation loss (default: 0.01)')
 args = parser.parse_args()
 
-bidir = args.bidir
+
 
 # load and prepare training data
 train_files = vxm.py.utils.read_file_list(args.img_list, prefix=args.img_prefix,
@@ -66,17 +55,10 @@ assert len(train_files) > 0, 'Could not find any training data.'
 # no need to append an extra feature axis if data is multichannel
 add_feat_axis = not args.multichannel
 
-if args.atlas:
-    # scan-to-atlas generator
-    atlas = vxm.py.utils.load_volfile(args.atlas, np_var='vol',
-                                      add_batch_axis=True, add_feat_axis=add_feat_axis)
-    generator = vxm.generators.scan_to_atlas(train_files, atlas,
-                                             batch_size=args.batch_size, bidir=args.bidir,
-                                             add_feat_axis=add_feat_axis)
-else:
-    # scan-to-scan generator
-    generator = vxm.py.generators.scan_to_scan(
-        train_files, batch_size=args.batch_size, bidir=args.bidir, add_feat_axis=add_feat_axis)
+bidir = True
+# scan-to-scan generator
+generator = vxm.py.generators.scan_to_scan(
+    train_files, batch_size=args.batch_size, bidir=bidir, add_feat_axis=add_feat_axis)
 
 # extract shape from sampled input
 inshape = next(generator)[0][0].shape[1:-1]
@@ -97,20 +79,24 @@ assert np.mod(args.batch_size, nb_gpus) == 0, \
 torch.backends.cudnn.deterministic = not args.cudnn_nondet
 
 # unet architecture
-enc_nf = args.enc if args.enc else [16, 32, 32, 32]
-dec_nf = args.dec if args.dec else [32, 32, 32, 32, 32, 16, 16]
+#enc_nf = args.enc if args.enc else [16, 32, 32, 32]
+#dec_nf = args.dec if args.dec else [32, 32, 32, 32, 32, 16, 16]
 
+raise ValueError("????????????? voxelmorph dev  branch not working!!!!!! ")
+
+nb_features = (16, 16, 16, 16, 16)
+integration_steps = 2
 if args.load_model:
     # load initial model (if specified)
-    model = vxm.networks.VxmDense.load(args.load_model, device)
+    model = vxm.nn.models.VxmDeformable.load(args.load_model, device)
 else:
-    # otherwise configure new model
-    model = vxm.networks.VxmDense(
-        inshape=inshape,
-        nb_unet_features=[enc_nf, dec_nf],
-        bidir=bidir,
-        int_steps=args.int_steps,
-        int_downsize=args.int_downsize
+    model = vxm.nn.models.VxmDeformable(
+        ndim=3,
+        in_channels=3,
+        out_channels=3,
+        nb_features = nb_features,
+        integration_steps = integration_steps,
+        device=device,
     )
 
 if nb_gpus > 1:

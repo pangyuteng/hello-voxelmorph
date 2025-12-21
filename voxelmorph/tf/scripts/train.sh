@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CUDA_VISIBLE_DEVICES=0 python \
-    /opt/train.py \
+    /opt/train_128.py \
     --img-list tl.csv \
     --model-dir /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/scripts/workdir \
     --gpu 0 --batch-size 2 \
