@@ -1,0 +1,24 @@
+universe = docker
+docker_image = pangyuteng/voxelmorph:latest
+docker_pull_policy = always
+
+executable = train.sh
+should_transfer_files = YES
+transfer_input_files = train.sh,tl.csv
+
+requirements = (OpSys == "LINUX" && Arch == "X86_64" && GPUMEM > 30000)
+
+when_to_transfer_output = ON_EXIT
+output = log/$(cluster).$(process).out
+error = log/$(cluster).$(process).err
+log = log/$(cluster).$(process).log
+
+request_cpus = 1
+request_gpus = 1
+request_memory = 50G
+request_disk = 10GB
+
+max_materialize = 1
+
+arguments = ""
+queue

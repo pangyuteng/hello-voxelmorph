@@ -2,6 +2,10 @@
 + build container
 (torch+tf+lib requirements based on # https://colab.research.google.com/drive/14s2h0j_Aoncp587vmpjsQBe6PQTxyVP5#scrollTo=8hBjrxrAwmaw)
 
+
+https://github.com/freesurfer/freesurfer/blob/dev/mri_synthmorph/Dockerfile
+
+
 ```
 
 bash build_and_push.sh
