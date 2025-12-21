@@ -1,0 +1,17 @@
+
+FROM tensorflow/tensorflow:1.13.1-gpu
+#RUN /usr/bin/python3 -m pip install --upgrade pip
+#RUN apt-get update && apt-get install git vim -yq
+RUN pip install --upgrade pip
+
+COPY requirements.keras224.txt /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt
+
+RUN mkdir -p /tmp/.cache/matplotlib && chmod -R 777 /tmp/.cache/matplotlib
+ENV MPLCONFIGDIR=/tmp/.cache/matplotlib
+ENV TF_ENABLE_ONEDNN_OPTS=0
+
+COPY --chmod=777 train_128.py /opt
+COPY --chmod=777 train_256.py /opt
+COPY --chmod=777 register.py /opt
+COPY --chmod=777 register_full_res.py /opt
