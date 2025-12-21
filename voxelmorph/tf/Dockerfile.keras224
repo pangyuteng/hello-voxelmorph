@@ -1,11 +1,23 @@
 
-FROM tensorflow/tensorflow:1.13.1-gpu
-#RUN /usr/bin/python3 -m pip install --upgrade pip
+FROM tensorflow/tensorflow:2.4.0-gpu
+
 #RUN apt-get update && apt-get install git vim -yq
-RUN pip install --upgrade pip
+#RUN /usr/bin/python3 -m pip install --upgrade pip
 
 COPY requirements.keras224.txt /tmp/requirements.txt
-RUN pip install -r /tmp/requirements.txt
+RUN pip3 install -r /tmp/requirements.txt
+
+
+#WORKDIR /opt
+#RUN git clone https://github.com/adalca/neurite
+# WORKDIR /opt/neurite
+# RUN cd /opt/neurite && git checkout 17aa080540b61e72ed1f5f37378df41c8278dc3e
+#&& python3 setup.py install
+# WORKDIR /opt
+# RUN git clone https://github.com/voxelmorph/voxelmorph
+# RUN cd /opt/voxelmorph && git checkout cc84aa7fe255bac6f3bad6f124106e61ea9312cf
+#&& python3 setup.py install
+
 
 RUN mkdir -p /tmp/.cache/matplotlib && chmod -R 777 /tmp/.cache/matplotlib
 ENV MPLCONFIGDIR=/tmp/.cache/matplotlib

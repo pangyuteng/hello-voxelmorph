@@ -1,4 +1,6 @@
 nibabel
-keras==2.2.4
-neurite @ https://github.com/adalca/neurite/archive/17aa080540b61e72ed1f5f37378df41c8278dc3e.zip
-voxelmorph @ https://github.com/voxelmorph/voxelmorph/archive/cc84aa7fe255bac6f3bad6f124106e61ea9312cf.zip
+voxelmorph==0.2
+#keras==2.4.0
+#tensorflow==2.4.0
+#neurite @ git+https://github.com/adalca/neurite@17aa080540b61e72ed1f5f37378df41c8278dc3e
+#voxelmorph @ git+https://github.com/voxelmorph/voxelmorph@cc84aa7fe255bac6f3bad6f124106e61ea9312cf
