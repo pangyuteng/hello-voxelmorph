@@ -4,7 +4,7 @@ FROM tensorflow/tensorflow:2.4.0-gpu
 #RUN apt-get update && apt-get install git vim -yq
 #RUN /usr/bin/python3 -m pip install --upgrade pip
 
-COPY requirements.keras224.txt /tmp/requirements.txt
+COPY requirements.tf.2.4.txt /tmp/requirements.txt
 RUN pip3 install -r /tmp/requirements.txt
 
 
@@ -23,7 +23,7 @@ RUN mkdir -p /tmp/.cache/matplotlib && chmod -R 777 /tmp/.cache/matplotlib
 ENV MPLCONFIGDIR=/tmp/.cache/matplotlib
 ENV TF_ENABLE_ONEDNN_OPTS=0
 
-COPY --chmod=777 train_128.py /opt
-COPY --chmod=777 train_256.py /opt
-COPY --chmod=777 register.py /opt
-COPY --chmod=777 register_full_res.py /opt
+# COPY --chmod=777 train_128.py /opt
+# COPY --chmod=777 train_256.py /opt
+# COPY --chmod=777 register.py /opt
+# COPY --chmod=777 register_full_res.py /opt
