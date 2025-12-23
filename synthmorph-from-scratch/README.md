@@ -20,7 +20,7 @@ docker run --gpus all -it -u $(id -u):$(id -g) \
 pangyuteng/voxelmorph:0.1.2-tf-synth bash
 
 
-docker run --memory=100g -it -u $(id -u):$(id -g) --gpus '"device=4,5,6,7"' \
+docker run --memory=100g --cpus=32 --cpuset-cpus=0-32 -it -u $(id -u):$(id -g) --gpus '"device=4,5,6,7"' \
 -w $PWD -v /cvibraid:/cvibraid -v /radraid:/radraid pangyuteng/voxelmorph:0.1.2-tf-synth bash
 
 python multimodal-registration/train_synthmorph.py --config-path config.json
