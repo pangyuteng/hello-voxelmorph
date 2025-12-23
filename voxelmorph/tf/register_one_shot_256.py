@@ -251,8 +251,9 @@ python register_one_shot_256.py \
 --moving tlc.nii.gz \
 --moved moved-256.nii.gz \
 --model tmp-256 --epochs=100 \
-
 --batch-size 4 --gpu 0,1,2,3
+
+
 --batch-size=1 --gpu 0
 
 pangyuteng/voxelmorph:0.1.1
