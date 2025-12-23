@@ -17,6 +17,8 @@ COPY voxelmorph /opt/voxelmorph
 WORKDIR /opt/voxelmorph
 RUN pip install .
 
+COPY multimodal-registration /opt/multimodal-registration
+
 #COPY requirements.txt /tmp/requirements.txt
 #RUN pip3 install -r /tmp/requirements.txt
 
