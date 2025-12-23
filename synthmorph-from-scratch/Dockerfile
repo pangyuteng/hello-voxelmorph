@@ -19,8 +19,8 @@ RUN pip install .
 
 COPY multimodal-registration /opt/multimodal-registration
 
-#COPY requirements.txt /tmp/requirements.txt
-#RUN pip3 install -r /tmp/requirements.txt
+COPY requirements.txt /tmp/requirements.txt
+RUN pip3 install -r /tmp/requirements.txt
 
 
 # COPY --chmod=777 train_128.py /opt
