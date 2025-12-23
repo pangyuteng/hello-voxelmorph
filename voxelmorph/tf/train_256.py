@@ -1,4 +1,25 @@
 
+raise NotImplementedError("""
+
+docker run --memory=100g -it -u $(id -u):$(id -g) --gpus '"device=4,5,6,7"' -w $PWD -v /cvibraid:/cvibraid -v /radraid:/radraid pangyuteng/voxelmorph:0.1.2-tf-1.11 bash
+
+docker run --memory=100g -it -u $(id -u):$(id -g) --gpus '"device=4,5,6,7"' -w $PWD -v /cvibraid:/cvibraid -v /radraid:/radraid pangyuteng/voxelmorph:0.1.2-tf-1.11 bash
+
+pangyuteng/voxelmorph:0.1.2-tf-1.11
+AttributeError: module 'tensorflow.keras.utils' has no attribute 'multi_gpu_model'
+
+TODO:
+
++ multigpu not working?!?!
+
++ pretrain with synthmorph data?
+[ ] download and resample to 256^3
+[ ] for image channel remove non-lung area
+[ ] add channels so you have lobes and vessels as additional channels.
+
+
+""")
+
 import os
 import random
 import argparse
