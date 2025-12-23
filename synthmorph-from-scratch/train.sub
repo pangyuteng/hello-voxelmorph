@@ -6,7 +6,8 @@ executable = train.sh
 should_transfer_files = YES
 transfer_input_files = train.sh
 
-requirements = (OpSys == "LINUX" && Arch == "X86_64" && GPUMEM > 80000)
+#requirements = (OpSys == "LINUX" && Arch == "X86_64" && GPUMEM > 80000)
+requirements = (OpSys == "LINUX" && Arch == "X86_64" && GPUMEM > 40000)
 
 when_to_transfer_output = ON_EXIT
 output = log/$(cluster).$(process).out
@@ -14,7 +15,7 @@ error = log/$(cluster).$(process).err
 log = log/$(cluster).$(process).log
 
 request_cpus = 32
-request_gpus = 2
+request_gpus = 4
 request_memory = 100G
 request_disk = 10GB
 
