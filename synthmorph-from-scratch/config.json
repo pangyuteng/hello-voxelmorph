@@ -11,7 +11,7 @@
   "zero_borders_maps_val": false,
   "zero_bord_scale": 8,
   "zero_bord_frac": 0.5,
-  "in_shape": [160, 160, 192],
+  "in_shape": [128,128,128],
   "num_labels": 26,
   "num_maps": 100,
   "im_scales": [16, 32, 64],
@@ -27,7 +27,7 @@
   "bias_std": 0.3,
   "bias_res": 40,
   "gpu": "0,1,2,3",
-  "epochs": 600,
+  "epochs": 10,
   "batch_size": 4,
   "train_frac": 0.8,
   "batch_size_val": 1,
@@ -41,6 +41,6 @@
   "int_steps": 5,
   "int_res": 2,
   "svf_res": 2,
-  "enc": [64, 64, 64, 64],
-  "dec": [64, 64, 64, 64, 64, 64]
+  "enc": [16, 32, 32, 32],
+  "dec": [32, 32, 32, 32, 16, 16]
 }
