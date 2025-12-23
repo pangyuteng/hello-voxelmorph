@@ -89,6 +89,7 @@ add_feat_axis = not args.multichannel
 # scan-to-scan generator
 generator = vxm.generators.scan_to_scan(
     train_files, batch_size=args.batch_size, bidir=args.bidir, add_feat_axis=add_feat_axis)
+
 # output_signature = ( 
 #     [tf.TensorSpec(shape=(), dtype=tf.float32),tf.TensorSpec(shape=(), dtype=tf.float32)],
 #     [tf.TensorSpec(shape=(), dtype=tf.float32),tf.TensorSpec(shape=(), dtype=tf.float32)]
@@ -122,7 +123,10 @@ dec_nf = args.dec if args.dec else [32, 32, 32, 32, 32, 16, 16]
 save_filename = os.path.join(model_dir, '{epoch:04d}.keras')
 
 mirrored_strategy = tf.distribute.MirroredStrategy()
-save_callback = vxm.networks.ModelCheckpointParallel(save_filename)
+#save_callback = vxm.networks.ModelCheckpointParallel(save_filename)
+#from neurite.tf.callbacks import ModelCheckpoint
+save_callback = tf.keras.callbacks.ModelCheckpoint(save_filename)
+
 #with mirrored_strategy.scope():
 if True:
     # build the model
@@ -251,9 +255,9 @@ python register_one_shot_256.py \
 --moving tlc.nii.gz \
 --moved moved-256.nii.gz \
 --model tmp-256 --epochs=100 \
+--batch-size 2 --gpu 0,1
+
 --batch-size 4 --gpu 0,1,2,3
-
-
 --batch-size=1 --gpu 0
 
 pangyuteng/voxelmorph:0.1.1
