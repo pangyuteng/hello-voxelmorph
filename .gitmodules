@@ -1,0 +1,12 @@
+[submodule "synthmorph-from-scratch/neurite"]
+	path = synthmorph-from-scratch/neurite
+	url = git@github.com:adalca/neurite.git
+[submodule "synthmorph-from-scratch/voxelmorph"]
+	path = synthmorph-from-scratch/voxelmorph
+	url = git@github.com:voxelmorph/voxelmorph.git
+[submodule "synthmorph-from-scratch/pystrum"]
+	path = synthmorph-from-scratch/pystrum
+	url = git@github.com:adalca/pystrum.git
+[submodule "synthmorph-from-scratch/multimodal-registration"]
+	path = synthmorph-from-scratch/multimodal-registration
+	url = git@github.com:ivadomed/multimodal-registration.git
