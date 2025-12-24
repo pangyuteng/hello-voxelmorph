@@ -3,6 +3,24 @@
 testing out https://github.com/ivadomed/multimodal-registration
 
 
++ [x] generated synthmorph data shape of 256^3 using scripts in `gen_labels`
+
+```
+cd gen_labels
+python gen_args.py > my.args
+condnor_submit condor.sub
+```
+
++ [ ] see if training script works  at 256^3
+
+    + [ ] with multigpu
+        + [ ] if multigpu fails, use single gpu
+```
+
+```
+
+
+
 ```
 Voxelmorph commit: 52dd120f3ae9b0ab0fde5d0efe50627a4528bc9f
 Neurite commit: c7bb05d5dae47d2a79e0fe5a8284f30b2304d335
