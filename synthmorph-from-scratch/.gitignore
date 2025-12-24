@@ -2,3 +2,5 @@ log
 logs
 mymodels
 labels
+docker_stderror
+docker_stdout

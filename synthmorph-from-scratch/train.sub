@@ -14,9 +14,9 @@ output = log/$(cluster).$(process).out
 error = log/$(cluster).$(process).err
 log = log/$(cluster).$(process).log
 
-request_cpus = 32
+request_cpus = 8
 request_gpus = 2
-request_memory = 200G
+request_memory = 100G
 request_disk = 10GB
 
 max_materialize = 1

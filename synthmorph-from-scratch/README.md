@@ -18,9 +18,11 @@ condnor_submit condor.sub
 
 ```
 
-# using 4 Quadro RTX 8000 vram 49GB
+# using 2 Quadro RTX 8000 vram 49GB
 
 cd synthmorph-from-scratch
+
+condor_submit train.sub # actually running?!
 
 docker run --memory=200g --cpus=32 --cpuset-cpus=0-32 -it -u $(id -u):$(id -g) --gpus '"device=4,5"' -w $PWD -v /cvibraid:/cvibraid -v /radraid:/radraid pangyuteng/voxelmorph:0.1.2-tf-synth bash
 
