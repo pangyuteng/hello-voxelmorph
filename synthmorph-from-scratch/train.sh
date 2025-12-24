@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python /opt/multimodal-registration/train_synthmorph.py --config-path config.json
+python3 /opt/multimodal-registration/train_synthmorph.py --config-path config.json
