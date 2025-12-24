@@ -30,6 +30,8 @@ python /opt/multimodal-registration/train_synthmorph.py --config-path config-sin
 
 python /opt/multimodal-registration/train_synthmorph.py --config-path config.json
 
+python /opt/multimodal-registration/train_synthmorph.py --config-path config-gen-label-only.json
+
 
 ```
 
