@@ -1,4 +1,10 @@
 
 for idx in range(60):
-    cmd = f"python /cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/synthmorph-from-scratch/gen_labels/gen_labels.py {idx} --config-path config.json"
+    cmd = f"python gen_labels.py {idx} --config-path config-gen-label-only.json"
     print(cmd)
+
+"""
+
+python gen_args.py > my.args
+
+"""

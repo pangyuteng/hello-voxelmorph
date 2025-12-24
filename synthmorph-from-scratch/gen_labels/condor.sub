@@ -4,7 +4,7 @@ docker_pull_policy = always
 
 executable = run.sh
 should_transfer_files = YES
-transfer_input_files = run.sh
+transfer_input_files = run.sh,gen_labels.py,config-gen-label-only.json
 
 requirements = (OpSys == "LINUX" && Arch == "X86_64")
 

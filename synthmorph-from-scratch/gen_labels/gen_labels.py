@@ -61,6 +61,6 @@ if __name__ == "__main__":
     with open(arg.config_path) as config_file:
         data = json.load(config_file)
 
-    label_maps = generate_label_maps(idx,data['in_shape'], data['num_labels'], data['num_maps'], data['im_scales'],
+    label_maps = generate_label_maps(arg.idx,data['in_shape'], data['num_labels'], data['num_maps'], data['im_scales'],
                                         data['def_scales'], data['im_max_std'], data['def_max_std'],
                                         data['save_label'], data['label_dir'], data['add_str'])
