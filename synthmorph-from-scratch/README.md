@@ -17,10 +17,12 @@ condnor_submit condor.sub
         + [ ] if multigpu fails, use single gpu
 
 ```
+
+# using 4 Quadro RTX 8000 vram 49GB
+
 cd synthmorph-from-scratch
 
-docker run --memory=100g --cpus=32 --cpuset-cpus=0-32 -it -u $(id -u):$(id -g) --gpus '"device=4,5,6,7"' \
--w $PWD -v /cvibraid:/cvibraid -v /radraid:/radraid pangyuteng/voxelmorph:0.1.2-tf-synth bash
+docker run --memory=200g --cpus=32 --cpuset-cpus=0-32 -it -u $(id -u):$(id -g) --gpus '"device=3,4,5,6"' -w $PWD -v /cvibraid:/cvibraid -v /radraid:/radraid pangyuteng/voxelmorph:0.1.2-tf-synth bash
 
 python /opt/multimodal-registration/train_synthmorph.py --config-path config.json
 
