@@ -4,7 +4,7 @@ docker_pull_policy = always
 
 executable = train.sh
 should_transfer_files = YES
-transfer_input_files = train.sh,config.json
+transfer_input_files = train.sh,config.json,config-single-gpu.json
 
 requirements = (OpSys == "LINUX" && Arch == "X86_64" && GPUMEM > 40000)
 #requirements = (Machine == "machine.domain.com")
