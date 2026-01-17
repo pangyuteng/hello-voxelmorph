@@ -190,7 +190,7 @@ pangyuteng/voxelmorph:0.1.1 DOES NOT WORK on V100
 pangyuteng/voxelmorph:0.1.2 inference work on V100
 BUT V100 training model.fit erros out, lib ver tweak needed
 
-docker run --gpus device=4 --memory=40g -it \
+docker run --memory=40g -it \
 -u $(id -u):$(id -g) --gpus device=4 \
 -w $PWD -v /cvibraid:/cvibraid -v /radraid:/radraid \
 pangyuteng/voxelmorph:0.1.1 bash
@@ -207,6 +207,9 @@ CUDA_VISIBLE_DEVICES=0 python register_one_shot.py \
 --fixed /radraid/pteng-public/tlc-rv-10123-downsampled/c290eec88fd4213abe64b16a240e0c63/682dae4d51d5e71bde5f0ee998f9b79d/img.nii.gz \
 --moving /radraid/pteng-public/tlc-rv-10123-downsampled/c290eec88fd4213abe64b16a240e0c63/78db5d85b47261bced5650064f3e61d5/img.nii.gz \
 --moved moved-one-shot.nii.gz \
---model tmp --load-weights scripts/shapes-dice-vel-3-res-8-16-32-256f.h5
+--model tmp --load-weights scripts/shapes-dice-vel-3-res-8-16-32-256f.h5 --lr 1e-5
+
+TODO: register_one_shot.py code works, results heavy distortion with lr 1e-5, needs tweaking
+setting lr to 1e-5, need to evaluate dice commpared to those of `disable-oneshot`
 
 """
