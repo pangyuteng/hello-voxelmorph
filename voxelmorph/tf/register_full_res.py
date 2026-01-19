@@ -7,6 +7,7 @@ import numpy as np
 import voxelmorph as vxm
 import tensorflow as tf
 import nibabel as nib
+from skimage.measure import label, regionprops
 from nibabel.processing import resample_to_output, resample_from_to
 from voxelmorph.py.utils import jacobian_determinant
 
@@ -116,6 +117,21 @@ if args.moved:
     lg_moved_obj = resample_from_to(lg_moved_obj,fixed_obj)
     nib.save(lg_moved_obj, args.moved)
 
+def cleanup_mask(org_mask):
+    new_mask = np.zeros_like(org_mask)
+    for idx in np.unique(org_mask):
+        if idx == 0:
+            continue
+        label_image = label(org_mask==idx)
+        region_list = regionprops(label_image)
+        if len(region_list) > 1: # get largest
+            region_list = sorted(region_list,key=lambda x: x.area,reverse=True)
+            largest_blob = (label_image == region_list[0].label).astype(np.uint8)
+            new_mask[largest_blob==1]=idx
+        else:
+            new_mask[org_mask==idx]=idx
+    return new_mask
+
 if args.moving_mask:
     myfolder = os.path.dirname(args.moving_mask)
     os.makedirs(myfolder,exist_ok=True)
@@ -129,7 +145,8 @@ if args.moving_mask:
             interp_method=interp_method).predict([lg_moving, warp])
 
     lg_moved = lg_moved.astype(np.int32)
-    lg_moved_obj = nib.Nifti1Image(lg_moved.squeeze(), lg_fixed_affine)
+    lg_moved = cleanup_mask(lg_moved.squeeze())
+    lg_moved_obj = nib.Nifti1Image(lg_moved, lg_fixed_affine)
     #reshape this back
     lg_moved_obj = resample_from_to(lg_moved_obj,fixed_obj)
     nib.save(lg_moved_obj, args.moved_mask)
