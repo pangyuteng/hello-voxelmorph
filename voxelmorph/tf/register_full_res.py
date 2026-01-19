@@ -125,10 +125,12 @@ def cleanup_mask(org_mask):
         label_image = label(org_mask==idx)
         region_list = regionprops(label_image)
         if len(region_list) > 1: # get largest
+            print(f"cleaning mask {idx}")
             region_list = sorted(region_list,key=lambda x: x.area,reverse=True)
             largest_blob = (label_image == region_list[0].label).astype(np.uint8)
             new_mask[largest_blob==1]=idx
         else:
+            print(f"mask clean not needed {idx}")
             new_mask[org_mask==idx]=idx
     return new_mask
 
