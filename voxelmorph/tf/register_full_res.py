@@ -117,10 +117,11 @@ if args.moved:
     lg_moved_obj = resample_from_to(lg_moved_obj,fixed_obj)
     nib.save(lg_moved_obj, args.moved)
 
-def cleanup_mask(org_mask):
+def cleanup_mask(org_mask_obj):
+    org_mask = org_mask_obj.get_fdata()
     new_mask = np.zeros_like(org_mask)
     for idx in np.unique(org_mask):
-        if idx == 0:
+        if idx <= 0:
             continue
         label_image = label(org_mask==idx)
         region_list = regionprops(label_image)
@@ -132,33 +133,15 @@ def cleanup_mask(org_mask):
         else:
             print(f"mask clean not needed {idx}")
             new_mask[org_mask==idx]=idx
-    return new_mask
+    new_mask_obj = nib.Nifti1Image(new_mask, org_mask_obj.affine)
+    return new_mask_obj
 
 if args.moving_mask:
     myfolder = os.path.dirname(args.moving_mask)
     os.makedirs(myfolder,exist_ok=True)
     interp_method = 'nearest'
 
-    _, lg_moving, _ = myload(args.moving_mask,target_sz=512,scale_intensity=False)
-    with tf.device(device):
-        lg_moved = vxm.networks.Transform(lg_inshape,
-            rescale=rescale_factor,
-            nb_feats=nb_feats,
-            interp_method=interp_method).predict([lg_moving, warp])
-
-    lg_moved = lg_moved.astype(np.int32)
-    lg_moved = cleanup_mask(lg_moved.squeeze())
-    lg_moved_obj = nib.Nifti1Image(lg_moved, lg_fixed_affine)
-    #reshape this back
-    lg_moved_obj = resample_from_to(lg_moved_obj,fixed_obj)
-    nib.save(lg_moved_obj, args.moved_mask)
-
-if args.moving_mask2:
-    myfolder = os.path.dirname(args.moving_mask2)
-    os.makedirs(myfolder,exist_ok=True)
-    interp_method = 'nearest'
-
-    _, lg_moving, _ = myload(args.moving_mask2,target_sz=512,scale_intensity=False)
+    _, lg_moving, _ = myload(args.moving_mask,target_sz=512,minval=0,scale_intensity=False)
     with tf.device(device):
         lg_moved = vxm.networks.Transform(lg_inshape,
             rescale=rescale_factor,
@@ -168,7 +151,26 @@ if args.moving_mask2:
     lg_moved = lg_moved.astype(np.int32)
     lg_moved_obj = nib.Nifti1Image(lg_moved.squeeze(), lg_fixed_affine)
     #reshape this back
-    lg_moved_obj = resample_from_to(lg_moved_obj,fixed_obj)
+    lg_moved_obj = resample_from_to(lg_moved_obj,fixed_obj,cval=0,order=0)
+    lg_moved_obj = cleanup_mask(lg_moved_obj)
+    nib.save(lg_moved_obj, args.moved_mask)
+
+if args.moving_mask2:
+    myfolder = os.path.dirname(args.moving_mask2)
+    os.makedirs(myfolder,exist_ok=True)
+    interp_method = 'nearest'
+
+    _, lg_moving, _ = myload(args.moving_mask2,target_sz=512,minval=0,scale_intensity=False)
+    with tf.device(device):
+        lg_moved = vxm.networks.Transform(lg_inshape,
+            rescale=rescale_factor,
+            nb_feats=nb_feats,
+            interp_method=interp_method).predict([lg_moving, warp])
+
+    lg_moved = lg_moved.astype(np.int32)
+    lg_moved_obj = nib.Nifti1Image(lg_moved.squeeze(), lg_fixed_affine)
+    #reshape this back
+    lg_moved_obj = resample_from_to(lg_moved_obj,fixed_obj,cval=0,order=0)
     nib.save(lg_moved_obj, args.moved_mask2)
 
 """
