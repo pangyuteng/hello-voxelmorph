@@ -45,7 +45,8 @@ def myload(nifti_file,minval=-1000,maxval=1000,out_minval=0,out_maxval=1,target_
     out_img_obj = resample_to_output(img_obj,voxel_sizes=target_spacing_np,cval=minval)
     # hack to get desired shape
     new_img = nib.Nifti1Image(np.zeros(target_shape), out_img_obj.affine, out_img_obj.header)
-    out_img_obj = resample_from_to(img_obj,new_img)
+    out_img_obj = resample_from_to(img_obj,new_img,cval=minval)
+    out_img = out_img_obj.get_fdata()
     #out_img = out_img_obj.get_fdata()[:target_sz,:target_sz,:target_sz].astype(np.float32)
     if scale_intensity:
         out_img = ( (out_img-minval)/(maxval-minval) ).clip(out_minval,out_maxval)
