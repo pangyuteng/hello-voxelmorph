@@ -4,3 +4,4 @@ mymodels
 labels
 docker_stderror
 docker_stdout
+*.nii.gz

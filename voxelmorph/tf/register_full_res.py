@@ -22,6 +22,8 @@ parser.add_argument('--movingsm', help='output movingsm filename')
 parser.add_argument('--fixedsm', help='output fixedsm filename')
 parser.add_argument('--moving-mask')
 parser.add_argument('--moved-mask')
+parser.add_argument('--moving-mask2')
+parser.add_argument('--moved-mask2')
 
 parser.add_argument('-g', '--gpu', help='GPU number(s) - if not supplied, CPU is used')
 
@@ -127,6 +129,24 @@ if args.moving_mask:
     #reshape this back
     lg_moved_obj = resample_from_to(lg_moved_obj,fixed_obj)
     nib.save(lg_moved_obj, args.moved_mask)
+
+if args.moving_mask2:
+    myfolder = os.path.dirname(args.moving_mask2)
+    os.makedirs(myfolder,exist_ok=True)
+    interp_method = 'nearest'
+
+    _, lg_moving, _ = myload(args.moving_mask2,target_sz=512,scale_intensity=False)
+    with tf.device(device):
+        lg_moved = vxm.networks.Transform(lg_inshape,
+            rescale=rescale_factor,
+            nb_feats=nb_feats,
+            interp_method=interp_method).predict([lg_moving, warp])
+
+    lg_moved = lg_moved.astype(np.int32)
+    lg_moved_obj = nib.Nifti1Image(lg_moved.squeeze(), lg_fixed_affine)
+    #reshape this back
+    lg_moved_obj = resample_from_to(lg_moved_obj,fixed_obj)
+    nib.save(lg_moved_obj, args.moved_mask2)
 
 """
 
