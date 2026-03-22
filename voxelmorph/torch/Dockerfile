@@ -8,6 +8,10 @@ RUN mkdir -p /tmp/.cache/matplotlib && chmod -R 777 /tmp/.cache/matplotlib
 ENV MPLCONFIGDIR=/tmp/.cache/matplotlib
 ENV TF_ENABLE_ONEDNN_OPTS=0
 
+#RUN pip install neurite
+#!git clone https://github.com/voxelmorph/voxelmorph.git # getting vxm from git to use scripts
+#!pip install neurite # dependencies
+
 #COPY --chmod=777 torch/train.py /opt
 #COPY --chmod=777 torch/register.py /opt
 #COPY --chmod=777 torch/register_full_res.py /opt
