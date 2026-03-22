@@ -14,8 +14,9 @@ voxelmorph 6fea3e8722c3db7edeffc663700acb0d5bcbb3c3
 
 check how to train synthmorth
 
-https://colab.research.google.com/drive/14s2h0j_Aoncp587vmpjsQBe6PQTxyVP5
+https://colab.research.google.com/drive/1ZefmWXBupRNsnIbBbGquhVDsk-7R7L1S?usp=sharing#scrollTo=7dC5zJ605UXz
 
+???
 make 256^3 image
 lobar masks
 vessel masks
