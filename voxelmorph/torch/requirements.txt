@@ -1,4 +1,6 @@
-pandas
-numpy
-nibabel
+numpy>=2.3.2
+pandas>=3.0.1
+nibabel>=5.4.2
+scikit-image>=0.26.0
 torch==2.8.0+cu129
+torchio>=0.22.1

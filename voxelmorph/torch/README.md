@@ -6,6 +6,10 @@ abandoned above
 using submodules
 https://colab.research.google.com/drive/1ZefmWXBupRNsnIbBbGquhVDsk-7R7L1S?usp=sharing#scrollTo=4mKxwJiK3X8r
 
+
+neurite 4cac56f09ada217c64ec102fccafac3b1fbb60a2
+voxelmorph 6fea3e8722c3db7edeffc663700acb0d5bcbb3c3
+
 + todo
 
 check how to train synthmorth
