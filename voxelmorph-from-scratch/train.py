@@ -86,7 +86,7 @@ class VxmIterableDataset(IterableDataset):
             target_path = self.folder_abspaths[idx2]
 
 
-            transform = tio.Resize((128,128,64))
+            transform = tio.Resize((256,256,128))
             rescale = tio.RescaleIntensity(out_min_max=(-1,1),in_min_max=(-1000,1000))
 
             source_nii = tio.ScalarImage(source_path)
@@ -95,8 +95,10 @@ class VxmIterableDataset(IterableDataset):
             target_nii = tio.ScalarImage(source_path)
             target_nii = transform(rescale(target_nii))
 
-            source = source_nii.data
-            target = target_nii.data
+            source = source_nii.tensor
+            target = target_nii.tensor
+
+            yield {'source': source, 'target': target}
 
             # # Get niftis
             # source_nii = nib.load(source_path)
@@ -105,7 +107,7 @@ class VxmIterableDataset(IterableDataset):
             # source = torch.from_numpy(source_nii.get_fdata()).float().unsqueeze(0)
             # target = torch.from_numpy(target_nii.get_fdata()).float().unsqueeze(0)
 
-            yield {'source': source, 'target': target}
+            #yield {'source': source, 'target': target}
 
     def _get_vol_paths(self) -> None:
         """
