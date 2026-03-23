@@ -50,6 +50,7 @@ import pandas as pd
 import sys
 sys.path.append("/mnt/hd1/code/github/hello-voxelmorph/voxelmorph/torch/voxelmorph")
 import voxelmorph as vxm
+from voxelmorph.py.utils import jacobian_determinant
 
 import torchio as tio
 
@@ -164,6 +165,10 @@ def train_epoch(
             return_warped_source=True,
             return_field_type='displacement'
         )
+
+        disp = np.moveaxis(displacement.cpu().detach().numpy().squeeze(),[0,1,2,3],[3,0,1,2])
+        jdet = jacobian_determinant(disp)
+        print(jdet.shape)
 
         img_loss = image_loss_fn(target, warped_source)
         grad_loss = grad_loss_fn(displacement)
