@@ -48,7 +48,7 @@ import pandas as pd
 
 
 import sys
-csv_file = sys.argv[1] # tl.csv
+
 # Local imports
 #sys.path.append("/mnt/hd1/code/github/hello-voxelmorph/voxelmorph/torch/voxelmorph")
 sys.path.append("/cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/torch/voxelmorph")
@@ -63,7 +63,7 @@ class VxmIterableDataset(IterableDataset):
     PyTorch IterableDataset for infinite VoxelMorph registration data.
     """
 
-    def __init__(self, device: str = 'cpu') -> None:
+    def __init__(self, csv_file, device: str = 'cpu') -> None:
         """
         Parameters
         ----------
@@ -91,7 +91,7 @@ class VxmIterableDataset(IterableDataset):
             target_path = self.folder_abspaths[idx2]
 
 
-            transform = tio.Resize((256,256,128))
+            transform = tio.Resize((128,128,128))
             rescale = tio.RescaleIntensity(out_min_max=(-1,1),in_min_max=(-1000,1000))
 
             source_nii = tio.ScalarImage(source_path)
@@ -187,6 +187,7 @@ def train_epoch(
 
 def main():
     parser = argparse.ArgumentParser(description='Train 3D VoxelMorph on OASIS data')
+    parser.add_argument('csv_file')
     parser.add_argument('--output-dir', type=str, default='output', help='Output directory')
     parser.add_argument('--epochs', type=int, default=100_000, help='Number of epochs')
     parser.add_argument('--workers', type=int, default=0, help='Number of workers')
@@ -218,7 +219,7 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 
     # Create dataloader
-    train_dataset = VxmIterableDataset(device=device)
+    train_dataset = VxmIterableDataset(args.csv_file,device=device)
     train_loader = iter(
         DataLoader(
             train_dataset,
