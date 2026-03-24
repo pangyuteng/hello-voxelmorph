@@ -46,9 +46,13 @@ from tqdm import tqdm
 import neurite as ne
 import pandas as pd
 
-# Local imports
+
 import sys
-sys.path.append("/mnt/hd1/code/github/hello-voxelmorph/voxelmorph/torch/voxelmorph")
+csv_file = sys.argv[1] # tl.csv
+# Local imports
+#sys.path.append("/mnt/hd1/code/github/hello-voxelmorph/voxelmorph/torch/voxelmorph")
+sys.path.append("/cvibraid/cvib2/apps/personal/pteng/github/hello-voxelmorph/voxelmorph/torch/voxelmorph")
+
 import voxelmorph as vxm
 from voxelmorph.py.utils import jacobian_determinant
 
@@ -67,7 +71,7 @@ class VxmIterableDataset(IterableDataset):
             Device to place tensors on.
         """
         self.device = device
-        self.df = pd.read_csv("tl.csv")
+        self.df = pd.read_csv(csv_file)
         self._get_vol_paths()
 
     def __iter__(self):
