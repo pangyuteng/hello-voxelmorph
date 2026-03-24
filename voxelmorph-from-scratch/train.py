@@ -171,8 +171,9 @@ def train_epoch(
         )
 
         disp = np.moveaxis(displacement.cpu().detach().numpy().squeeze(),[0,1,2,3],[3,0,1,2])
-        jdet = jacobian_determinant(disp)
-        print(jdet.shape)
+        print(disp.shape)
+        # jdet need to compute per case?
+        #jdet = jacobian_determinant(disp)
 
         img_loss = image_loss_fn(target, warped_source)
         grad_loss = grad_loss_fn(displacement)
